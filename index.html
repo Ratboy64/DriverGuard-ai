@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DriveGuard AI">
+<meta name="theme-color" content="#080812">
+<meta name="description" content="Real-time crash risk monitor powered by Claude AI">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>DriveGuard AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
+:root{
+  --bg:#080812;--panel:#0e0e1c;--panel2:#14142a;--border:#1c1c38;
+  --safe:#00e676;--warn:#ffab00;--danger:#ff1744;--accent:#00b4ff;--ai:#b06aff;
+  --text:#dde2f0;--dim:#505880;
+  --fhud:'Orbitron',monospace;--fmono:'Share Tech Mono',monospace;--fui:'Rajdhani',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--fui);font-size:16px;user-select:none;overscroll-behavior:none;-webkit-overflow-scrolling:touch}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
+/* iPhone 15 Dynamic Island & home bar safe areas */
+.screen{
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+}
+.screen.active{display:flex;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── WIZARD ──────────────────────────────────── */
+#sw{background:radial-gradient(ellipse at 50% 110%,#0a1628,#080812 65%);align-items:center;justify-content:center;padding:18px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.wlogo{font-family:var(--fhud);font-size:2rem;font-weight:900;letter-spacing:6px;text-align:center;background:linear-gradient(120deg,var(--accent),var(--ai));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.wai{font-family:var(--fmono);font-size:.72rem;color:var(--ai);text-align:center;letter-spacing:3px;margin:2px 0 6px}
+.wtag{font-family:var(--fmono);font-size:.68rem;color:var(--dim);text-align:center;letter-spacing:4px;margin-bottom:24px}
+.wcard{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px 18px;width:100%;max-width:420px;box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 50px rgba(176,106,255,.04)}
+.wlabel{font-family:var(--fmono);font-size:.72rem;color:var(--accent);letter-spacing:3px;margin-bottom:5px}
+.wtitle{font-family:var(--fhud);font-size:1.05rem;font-weight:700;margin-bottom:16px}
+.wstep{display:none}.wstep.active{display:block}
+.fg{margin-bottom:12px}
+.fl{display:block;font-family:var(--fmono);font-size:.72rem;color:var(--dim);letter-spacing:2px;margin-bottom:5px}
+input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--fmono);font-size:16px;padding:10px 12px;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select option{background:var(--panel2)}
+textarea{resize:vertical;min-height:70px;line-height:1.5}
+.btn{display:block;width:100%;padding:13px;border:none;border-radius:10px;font-family:var(--fhud);font-size:.82rem;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.bp{background:linear-gradient(135deg,var(--accent),#0070d8);color:#fff;box-shadow:0 4px 18px rgba(0,180,255,.25)}
+.bp:active{transform:scale(.97)}
+.bai{background:linear-gradient(135deg,var(--ai),#7030cc);color:#fff;box-shadow:0 4px 18px rgba(176,106,255,.3);margin-bottom:8px}
+.bs{background:transparent;border:1px solid var(--border);color:var(--dim);margin-top:7px}
+.bd{background:linear-gradient(135deg,var(--danger),#c00020);color:#fff}
+.err{font-family:var(--fmono);font-size:.78rem;color:var(--danger);min-height:16px;margin-bottom:7px}
+.sdots{display:flex;justify-content:center;gap:8px;margin-top:16px}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:background .3s}
+.sdot.active{background:var(--accent)}
+.itext{font-family:var(--fmono);font-size:.78rem;color:var(--dim);line-height:1.65;margin-bottom:10px}
+
+/* ── MAIN DASHBOARD ──────────────────────────── */
+.hbar{display:flex;align-items:center;justify-content:space-between;padding:7px 12px 5px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+.hlogo{font-family:var(--fhud);font-size:1rem;font-weight:900;letter-spacing:3px;background:linear-gradient(90deg,var(--accent),var(--ai));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.haisub{font-family:var(--fmono);font-size:.62rem;color:var(--ai);letter-spacing:2px}
+.vtag{font-family:var(--fmono);font-size:.7rem;color:var(--dim);max-width:155px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.hbtn{background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--fmono);font-size:.7rem;padding:5px 10px;border-radius:6px;cursor:pointer;letter-spacing:1px}
+.dsplit{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+
+/* Gauge */
+.gpanel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 6px 2px;background:var(--panel);border-bottom:2px solid var(--border);position:relative;min-height:0}
+.gwrap{position:relative;width:100%;max-width:280px}
+#gc{width:100%;display:block}
+.govl{position:absolute;bottom:12%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;white-space:nowrap}
+.gscore{font-family:var(--fhud);font-size:2.6rem;font-weight:900;line-height:1;transition:color .5s}
+.glbl{font-family:var(--fmono);font-size:.68rem;letter-spacing:3px;color:var(--dim);margin-top:2px}
+.gstats{display:flex;gap:14px;margin-top:4px}
+.gst{text-align:center}
+.gstv{font-family:var(--fhud);font-size:1.05rem;font-weight:700;color:var(--accent)}
+.gstl{font-family:var(--fmono);font-size:.6rem;color:var(--dim);letter-spacing:2px}
+.gpulse{position:absolute;inset:0;pointer-events:none;opacity:0}
+.gpulse.active{animation:ppulse 1.6s ease-in-out infinite}
+@keyframes ppulse{0%,100%{background:transparent}50%{background:rgba(255,23,68,.07)}}
+
+/* AI Coach strip */
+.aistrip{flex-shrink:0;background:linear-gradient(135deg,#0d0d20,#110d1e);border-bottom:1px solid #2a1850;padding:6px 12px;display:flex;align-items:flex-start;gap:8px;min-height:44px;max-height:72px;overflow:hidden;cursor:pointer;transition:max-height .3s}
+.aistrip.expanded{max-height:200px}
+.aiicon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.aitext{font-family:var(--fmono);font-size:.78rem;color:#c8b4f8;line-height:1.6;flex:1}
+.aithink{display:inline-block;animation:blink .9s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.aiask{background:none;border:1px solid #3a1a6a;border-radius:6px;padding:4px 10px;color:var(--ai);font-family:var(--fmono);font-size:.7rem;cursor:pointer;flex-shrink:0;align-self:flex-start}
+
+/* Chart */
+.cpanel{flex:1;padding:8px 12px 4px;background:var(--bg);overflow:hidden;min-height:0;display:flex;flex-direction:column}
+.cptitle{font-family:var(--fmono);font-size:.68rem;letter-spacing:3px;color:var(--dim);margin-bottom:5px}
+.cwrap{flex:1;position:relative;min-height:0}
+
+/* Status bar */
+.sbar{display:flex;align-items:center;justify-content:space-between;padding:6px 11px;background:var(--panel);border-top:1px solid var(--border);flex-shrink:0;gap:5px}
+.si{display:flex;flex-direction:column;align-items:center}
+.sv{font-family:var(--fhud);font-size:.92rem;font-weight:700}
+.sl{font-family:var(--fmono);font-size:.6rem;color:var(--dim);letter-spacing:1px}
+.sdiv{width:1px;height:20px;background:var(--border)}
+.mtog{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--dim);font-family:var(--fmono);font-size:.7rem;letter-spacing:1px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.mtog.on{border-color:var(--warn);color:var(--warn);box-shadow:0 0 8px rgba(255,171,0,.2)}
+.tbtn{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--dim);font-family:var(--fmono);font-size:.7rem;cursor:pointer;white-space:nowrap}
+.gdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--dim);margin-right:4px;vertical-align:middle;transition:all .3s}
+.gdot.on{background:var(--safe);box-shadow:0 0 5px var(--safe)}
+
+/* ── AI COACH SCREEN ─────────────────────────── */
+#sai{background:var(--bg)}
+.aichat{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch}
+.msg{margin-bottom:12px;display:flex;gap:8px;align-items:flex-start}
+.msg.user{flex-direction:row-reverse}
+.mbubble{font-family:var(--fmono);font-size:.82rem;line-height:1.65;padding:10px 13px;border-radius:12px;max-width:88%}
+.msg.ai .mbubble{background:var(--panel);border:1px solid #2a1850;color:#d4c4ff}
+.msg.user .mbubble{background:linear-gradient(135deg,#0d2040,#0a1830);border:1px solid var(--border);color:var(--text)}
+.micon{font-size:1.2rem;flex-shrink:0;margin-top:2px}
+.aiibar{flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);padding:8px 10px;display:flex;gap:8px;align-items:flex-end}
+.aiinp{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--fmono);font-size:16px;padding:8px 10px;outline:none;resize:none;min-height:40px;max-height:90px;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.aiinp:focus{border-color:var(--ai)}
+.aisend{background:linear-gradient(135deg,var(--ai),#7030cc);border:none;border-radius:8px;color:#fff;font-size:1.2rem;width:42px;height:42px;cursor:pointer;flex-shrink:0;transition:transform .15s}
+.aisend:active{transform:scale(.92)}
+.aiqbtn{background:none;border:1px solid #2a1850;border-radius:6px;padding:6px 10px;color:var(--ai);font-family:var(--fmono);font-size:.7rem;cursor:pointer;margin-bottom:4px;display:inline-block}
+.qrow{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+
+/* ── ALERT OVERLAY ───────────────────────────── */
+#oa{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+#oa.active{display:flex}
+.acard{background:#130808;border:2px solid var(--danger);border-radius:20px;padding:26px 22px;width:100%;max-width:340px;text-align:center;animation:cardPulse 1.6s ease-in-out infinite}
+@keyframes cardPulse{0%,100%{box-shadow:0 0 40px rgba(255,23,68,.25)}50%{box-shadow:0 0 80px rgba(255,23,68,.55)}}
+.aicon{font-size:2.6rem;display:block;margin-bottom:8px}
+.atitle{font-family:var(--fhud);font-size:1.1rem;font-weight:900;color:var(--danger);letter-spacing:3px;margin-bottom:7px}
+.abody{font-family:var(--fmono);font-size:.82rem;color:var(--dim);line-height:1.65;margin-bottom:12px}
+.astat{font-family:var(--fhud);font-size:1.7rem;font-weight:900;color:var(--danger)}
+.aaifb{font-family:var(--fmono);font-size:.65rem;color:#c8b4f8;margin-top:10px;font-style:italic;min-height:20px}
+
+/* ── PIN OVERLAY ─────────────────────────────── */
+#op{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+#op.active{display:flex}
+.pcard{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:26px 22px;width:100%;max-width:300px;text-align:center}
+.ptitle{font-family:var(--fhud);font-size:.9rem;font-weight:700;letter-spacing:3px;color:var(--accent);margin-bottom:5px}
+.psub{font-family:var(--fmono);font-size:.72rem;color:var(--dim);letter-spacing:2px;margin-bottom:20px}
+.pdots{display:flex;justify-content:center;gap:11px;margin-bottom:20px}
+.pd{width:13px;height:13px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:all .2s}
+.pd.fill{background:var(--accent);border-color:var(--accent)}
+.pd.err{background:var(--danger);border-color:var(--danger)}
+.ppad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pk{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px;font-family:var(--fhud);font-size:1rem;font-weight:700;color:var(--text);cursor:pointer;transition:all .15s}
+.pk:active{background:var(--border);transform:scale(.94)}
+.pk.del{color:var(--danger)}.pk.emp{visibility:hidden}
+.perr{font-family:var(--fmono);font-size:.65rem;color:var(--danger);letter-spacing:2px;margin-top:12px;min-height:16px}
+
+/* ── TUNING PANEL ────────────────────────────── */
+#st{background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.thead{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0}
+.ttitle{font-family:var(--fhud);font-size:.85rem;font-weight:700;letter-spacing:2px;color:var(--warn)}
+.tbody{padding:13px}
+.tsec{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:13px}
+.tsectl{font-family:var(--fmono);font-size:.7rem;color:var(--accent);letter-spacing:3px;margin-bottom:11px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.tsectl.ai-color{color:var(--ai)}
+.srow{margin-bottom:11px}
+.shdr{display:flex;justify-content:space-between;margin-bottom:5px}
+.sname{font-family:var(--fui);font-size:.92rem;color:var(--text)}.sval{font-family:var(--fmono);font-size:.82rem;color:var(--accent)}
+input[type=range]{width:100%;height:4px;appearance:none;background:var(--border);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 6px rgba(0,180,255,.5)}
+
+/* ── INCIDENT LOG ─────────────────────────────── */
+#oi{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:150}
+#oi.active{display:flex}
+.ilist{flex:1;overflow-y:auto;padding:13px;-webkit-overflow-scrolling:touch}
+.iitem{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:8px}
+.itime{font-family:var(--fmono);font-size:.72rem;color:var(--dim);margin-bottom:6px}
+.istats{display:flex;gap:12px;flex-wrap:wrap}
+.istat .iv{font-family:var(--fhud);font-size:.88rem;font-weight:700}
+.istat .il{font-family:var(--fmono);font-size:.58rem;color:var(--dim);letter-spacing:1px}
+.iaisumm{font-family:var(--fmono);font-size:.75rem;color:#c8b4f8;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.6;font-style:italic}
+
+.cs{color:var(--safe)!important}.cw{color:var(--warn)!important}.cd{color:var(--danger)!important}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ WIZARD ══════════════════════════ -->
+<div id="sw" class="screen active">
+  <div class="wlogo">DRIVEGUARD</div>
+  <div class="wai">✦ POWERED BY CLAUDE AI ✦</div>
+  <div class="wtag">REAL-TIME CRASH RISK MONITOR</div>
+  <div class="wcard">
+    <div class="wlabel" id="wlbl">STEP 1 OF 5</div>
+    <div class="wtitle" id="wtitle">Secure Access Setup</div>
+
+    <div class="wstep active" id="ws1">
+      <div class="fg"><span class="fl">CREATE TUNING PIN (4–8 DIGITS)</span><input type="password" id="wp1" maxlength="8" placeholder="Enter PIN" inputmode="numeric"></div>
+      <div class="fg"><span class="fl">CONFIRM PIN</span><input type="password" id="wp2" maxlength="8" placeholder="Confirm PIN" inputmode="numeric"></div>
+      <div class="itext">Default PIN is <strong style="color:var(--accent)">2049</strong>. Leave blank to keep default.</div>
+      <div class="err" id="e1"></div>
+      <button class="btn bp" onclick="wn(1)">NEXT →</button>
+    </div>
+
+    <div class="wstep" id="ws2">
+      <div class="fg"><span class="fl">MODEL YEAR</span><select id="wyr"></select></div>
+      <div class="fg"><span class="fl">MAKE</span><select id="wmk" onchange="loadModels()"><option value="">Select Make</option></select></div>
+      <div class="fg"><span class="fl">MODEL</span><select id="wmo"><option value="">Select Model</option></select></div>
+      <div class="itext">VIN decode in Tuning Panel for precise NHTSA safety data.</div>
+      <div class="err" id="e2"></div>
+      <button class="btn bp" onclick="wn(2)">NEXT →</button>
+      <button class="btn bs" onclick="wn(2,true)">Skip for now</button>
+    </div>
+
+    <div class="wstep" id="ws3">
+      <div class="fg"><span class="fl">PARENT / GUARDIAN EMAIL</span><input type="email" id="we" placeholder="parent@email.com"></div>
+      <div class="fg"><span class="fl">EMAILJS SERVICE ID</span><input type="text" id="wes" placeholder="service_xxxxxxx" autocomplete="off"></div>
+      <div class="fg"><span class="fl">EMAILJS TEMPLATE ID</span><input type="text" id="wet" placeholder="template_xxxxxxx" autocomplete="off"></div>
+      <div class="fg"><span class="fl">EMAILJS PUBLIC KEY</span><input type="text" id="wek" placeholder="your_public_key" autocomplete="off"></div>
+      <div class="itext">Free account at <strong style="color:var(--accent)">emailjs.com</strong>. Template vars: <em>to_email, trigger_type, risk_score, speed, lat_g, ai_analysis, vehicle, timestamp</em></div>
+      <button class="btn bp" onclick="wn(3)">NEXT →</button>
+      <button class="btn bs" onclick="wn(3,true)">Skip email setup</button>
+    </div>
+
+    <div class="wstep" id="ws4">
+      <div class="fg" style="background:linear-gradient(135deg,#110d1e,#0d0d20);border:1px solid #2a1850;border-radius:10px;padding:14px">
+        <div style="font-family:var(--fhud);font-size:.72rem;color:var(--ai);letter-spacing:2px;margin-bottom:6px">✦ CLAUDE AI COACH</div>
+        <div class="itext" style="margin-bottom:8px">The AI coach analyzes your driving in real time — giving live feedback, pattern analysis, and intelligent parent alert summaries. Your API key stays on your device.</div>
+        <span class="fl">ANTHROPIC API KEY</span>
+        <input type="password" id="wapikey" placeholder="sk-ant-...">
+      </div>
+      <div class="itext" style="margin-top:8px">Get your key free at <strong style="color:var(--accent)">console.anthropic.com</strong>. The AI coach is optional — DriveGuard works without it.</div>
+      <button class="btn bai" onclick="wn(4)">NEXT →</button>
+      <button class="btn bs" onclick="wn(4,true)">Skip AI (basic mode)</button>
+    </div>
+
+    <div class="wstep" id="ws5">
+      <div class="itext">DriveGuard needs GPS and motion sensor access to monitor your drive.</div>
+      <button class="btn bp" id="bgps" onclick="reqGPS()" style="margin-bottom:9px">📍 Enable GPS Location</button>
+      <button class="btn bp" id="bmot" onclick="reqMotion()" style="margin-bottom:9px">📡 Enable Motion Sensors</button>
+      <div class="itext" style="margin-top:5px">iOS 13+ requires the motion button tap. Android grants automatically.</div>
+      <button class="btn bp" onclick="wfinish()">LAUNCH DRIVEGUARD →</button>
+    </div>
+
+    <div class="sdots">
+      <div class="sdot active" id="sd1"></div><div class="sdot" id="sd2"></div>
+      <div class="sdot" id="sd3"></div><div class="sdot" id="sd4"></div><div class="sdot" id="sd5"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN DASHBOARD ══════════════════ -->
+<div id="sm" class="screen">
+  <div class="hbar">
+    <div>
+      <div class="hlogo">DRIVEGUARD <span style="font-size:.55rem;color:var(--ai);letter-spacing:2px;-webkit-text-fill-color:var(--ai)">AI</span></div>
+      <div id="vdisp" class="vtag">No vehicle set</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="gdot" id="gdot"></span>
+        <button class="hbtn" onclick="toggleDemo()">DEMO</button>
+        <button class="hbtn" style="color:var(--ai);border-color:#2a1850" onclick="show('sai')">🤖 AI</button>
+      </div>
+      <span id="ibadge" style="font-family:var(--fhud);font-size:.55rem;color:var(--danger);display:none">⚠ <span id="ibn">0</span> INCIDENTS</span>
+    </div>
+  </div>
+
+  <div class="dsplit">
+    <div class="gpanel" id="gpanel">
+      <div class="gpulse" id="gpulse"></div>
+      <div class="gwrap">
+        <canvas id="gc"></canvas>
+        <div class="govl">
+          <div class="gscore" id="gscore">0</div>
+          <div class="glbl" id="glbl">MONITORING</div>
+        </div>
+      </div>
+      <div class="gstats">
+        <div class="gst"><div class="gstv" id="gspd">0</div><div class="gstl">MPH</div></div>
+        <div class="gst"><div class="gstv" id="ggf">0.0g</div><div class="gstl">G-FORCE</div></div>
+        <div class="gst"><div class="gstv" id="glat">0.0g</div><div class="gstl">LATERAL</div></div>
+        <div class="gst"><div class="gstv" id="gbrk">0.0g</div><div class="gstl">BRAKING</div></div>
+      </div>
+    </div>
+
+    <!-- AI Coach strip -->
+    <div class="aistrip" id="aistrip" onclick="aiStripToggle()">
+      <span class="aiicon">🤖</span>
+      <div class="aitext" id="aistrip-text"><span class="aithink">▋</span></div>
+      <button class="aiask" onclick="event.stopPropagation();show('sai')">CHAT</button>
+    </div>
+
+    <div class="cpanel">
+      <div class="cptitle">RISK FACTOR BREAKDOWN</div>
+      <div class="cwrap"><canvas id="rc"></canvas></div>
+    </div>
+  </div>
+
+  <div class="sbar">
+    <div class="si"><div class="sv" id="sbspd">0</div><div class="sl">MPH</div></div>
+    <div class="sdiv"></div>
+    <div class="si"><div class="sv" id="sbgf">0.0g</div><div class="sl">PEAK-G</div></div>
+    <div class="sdiv"></div>
+    <div class="si"><div class="sv" id="sbinc" style="color:var(--dim)">0</div><div class="sl">EVENTS</div></div>
+    <div class="sdiv"></div>
+    <button class="mtog" id="altbtn" onclick="toggleAlerts()">⚠ ALERTS</button>
+    <button class="tbtn" onclick="openTuning()">⚙ TUNE</button>
+  </div>
+</div>
+
+<!-- ═══════════════ AI COACH SCREEN ══════════════════ -->
+<div id="sai" class="screen">
+  <div class="thead">
+    <div style="display:flex;flex-direction:column">
+      <div class="ttitle" style="color:var(--ai)">🤖 AI DRIVING COACH</div>
+      <div style="font-family:var(--fmono);font-size:.5rem;color:var(--dim);letter-spacing:2px">POWERED BY CLAUDE</div>
+    </div>
+    <button class="hbtn" onclick="show('sm')">← BACK</button>
+  </div>
+
+  <div style="padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0">
+    <div class="qrow" id="qrow">
+      <button class="aiqbtn" onclick="sendQ('How is my driving right now?')">Current assessment</button>
+      <button class="aiqbtn" onclick="sendQ('What are my biggest risk factors?')">Risk factors</button>
+      <button class="aiqbtn" onclick="sendQ('Analyze my session incidents')">Incident analysis</button>
+      <button class="aiqbtn" onclick="sendQ('What should I do differently?')">Improvement tips</button>
+      <button class="aiqbtn" onclick="sendQ('Write a parent alert email for my driving')">Draft parent alert</button>
+    </div>
+  </div>
+
+  <div class="aichat" id="aichat">
+    <div class="msg ai">
+      <span class="micon">🤖</span>
+      <div class="mbubble">Hello! I'm your DriveGuard AI coach, powered by Claude. I have access to your real-time speed, G-force readings, risk scores, and incident history.<br><br>Ask me anything about your driving, or tap a quick question above to get started.</div>
+    </div>
+  </div>
+
+  <div class="aiibar">
+    <textarea class="aiinp" id="aiinp" rows="1" placeholder="Ask your driving coach..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI()}"></textarea>
+    <button class="aisend" onclick="sendAI()">↑</button>
+  </div>
+</div>
+
+<!-- ═══════════════ TUNING PANEL ══════════════════════ -->
+<div id="st" class="screen">
+  <div class="thead">
+    <div class="ttitle">⚙ TUNING PANEL</div>
+    <button class="hbtn" onclick="saveTuning()">✓ SAVE &amp; CLOSE</button>
+  </div>
+  <div class="tbody">
+
+    <div class="tsec">
+      <div class="tsectl">RISK FACTOR WEIGHTS</div>
+      <div class="srow"><div class="shdr"><span class="sname">Speed Risk</span><span class="sval" id="wv-s">35%</span></div><input type="range" min="0" max="100" value="35" id="ws-s" oninput="updW('s',this.value)"></div>
+      <div class="srow"><div class="shdr"><span class="sname">Vehicle Safety Rating</span><span class="sval" id="wv-v">20%</span></div><input type="range" min="0" max="100" value="20" id="ws-v" oninput="updW('v',this.value)"></div>
+      <div class="srow"><div class="shdr"><span class="sname">Crash Type Probability</span><span class="sval" id="wv-c">15%</span></div><input type="range" min="0" max="100" value="15" id="ws-c" oninput="updW('c',this.value)"></div>
+      <div class="srow"><div class="shdr"><span class="sname">G-Force Severity</span><span class="sval" id="wv-g">20%</span></div><input type="range" min="0" max="100" value="20" id="ws-g" oninput="updW('g',this.value)"></div>
+      <div class="srow"><div class="shdr"><span class="sname">Maneuver Risk</span><span class="sval" id="wv-m">10%</span></div><input type="range" min="0" max="100" value="10" id="ws-m" oninput="updW('m',this.value)"></div>
+      <button class="btn bs" onclick="resetWeights()" style="margin-top:4px">Reset Defaults</button>
+    </div>
+
+    <div class="tsec">
+      <div class="tsectl">ALERT THRESHOLDS</div>
+      <div class="srow"><div class="shdr"><span class="sname">Risk Score Trigger</span><span class="sval" id="tv-s">65</span></div><input type="range" min="10" max="95" value="65" id="ts-s" oninput="document.getElementById('tv-s').textContent=this.value"></div>
+      <div class="srow"><div class="shdr"><span class="sname">Speed Trigger (MPH)</span><span class="sval" id="tv-sp">75</span></div><input type="range" min="25" max="120" value="75" id="ts-sp" oninput="document.getElementById('tv-sp').textContent=this.value"></div>
+      <div class="srow"><div class="shdr"><span class="sname">G-Force Trigger</span><span class="sval" id="tv-g">0.5g</span></div><input type="range" min="1" max="20" value="5" id="ts-g" oninput="document.getElementById('tv-g').textContent=(this.value/10).toFixed(1)+'g'"></div>
+    </div>
+
+    <div class="tsec">
+      <div class="tsectl">NOTIFICATION MODE</div>
+      <div class="fg"><span class="fl">TRIGGER BEHAVIOR</span>
+        <select id="tamode">
+          <option value="immediate">Immediate — every event</option>
+          <option value="cooldown">Cooldown — once per interval</option>
+          <option value="count">Count — after N incidents</option>
+          <option value="summary">Session Summary — on close only</option>
+        </select></div>
+      <div class="fg"><span class="fl">COOLDOWN (MINUTES)</span><input type="number" id="tcd" value="15" min="1" max="120"></div>
+      <div class="fg"><span class="fl">COUNT TRIGGER (N)</span><input type="number" id="tcn" value="3" min="1" max="50"></div>
+    </div>
+
+    <div class="tsec">
+      <div class="tsectl">PARENT EMAIL</div>
+      <div class="fg"><span class="fl">PARENT EMAIL</span><input type="email" id="te" placeholder="parent@email.com"></div>
+      <div class="fg"><span class="fl">EMAILJS SERVICE ID</span><input type="text" id="tes" placeholder="service_xxxxxxx" autocomplete="off"></div>
+      <div class="fg"><span class="fl">EMAILJS TEMPLATE ID</span><input type="text" id="tet" placeholder="template_xxxxxxx" autocomplete="off"></div>
+      <div class="fg"><span class="fl">EMAILJS PUBLIC KEY</span><input type="text" id="tek" placeholder="your_public_key" autocomplete="off"></div>
+      <button class="btn bs" onclick="testEmail()" style="margin-bottom:6px">Send Test Email</button>
+      <div id="eres" class="err"></div>
+    </div>
+
+    <div class="tsec">
+      <div class="tsectl ai-color">✦ AI COACH SETTINGS</div>
+      <div class="fg"><span class="fl">ANTHROPIC API KEY</span><input type="password" id="tapikey" placeholder="sk-ant-..."></div>
+      <div class="fg"><span class="fl">AI COACHING INTERVAL (SECONDS)</span><input type="number" id="taiint" value="30" min="10" max="300"></div>
+      <div class="itext">AI coach sends live updates during your drive at the interval above. Longer intervals = fewer API calls.</div>
+      <button class="btn bs" onclick="testAI()" style="margin-bottom:6px">Test AI Connection</button>
+      <div id="aires" class="err"></div>
+    </div>
+
+    <div class="tsec">
+      <div class="tsectl" style="color:var(--accent)">🚗 CHANGE VEHICLE</div>
+      <div class="fg"><span class="fl">MODEL YEAR</span><select id="tyr"></select></div>
+      <div class="fg"><span class="fl">MAKE</span><select id="tmk" onchange="loadTuningModels()"><option value="">Select Make</option></select></div>
+      <div class="fg"><span class="fl">MODEL</span><select id="tmo"><option value="">Select Model</option></select></div>
+      <button class="btn bp" onclick="saveVehicle()" style="margin-bottom:6px">UPDATE VEHICLE</button>
+      <div id="vres" class="err" style="color:var(--safe)"></div>
+    </div>
+
+    <div class="tsec">
+      <div class="tsectl">VIN DECODE</div>
+      <div class="fg"><span class="fl">17-CHARACTER VIN</span><input type="text" id="tvin" maxlength="17" placeholder="1FTFW1E83MFA12345" style="text-transform:uppercase"></div>
+      <button class="btn bp" onclick="decodeVIN()" style="margin-bottom:7px">DECODE VIN</button>
+      <div id="vinres" class="itext"></div>
+    </div>
+
+    <div class="tsec">
+      <div class="tsectl">DEMO / SIMULATION</div>
+      <div class="fg"><span class="fl">SIMULATED SPEED (MPH)</span><input type="number" id="tdemo" value="0" min="0" max="150"></div>
+      <div class="fg"><span class="fl">SIMULATED LATERAL G</span><input type="number" id="tdemog" value="0.0" min="0" max="2.0" step="0.1"></div>
+      <button class="btn bs" onclick="setDemo(true)" style="margin-bottom:7px">Enable Demo Mode</button>
+      <button class="btn bs" onclick="setDemo(false)">Disable Demo (GPS)</button>
+      <div id="dmode" class="itext" style="margin-top:7px"></div>
+    </div>
+
+    <div class="tsec">
+      <div class="tsectl">INCIDENT LOG</div>
+      <button class="btn bs" id="vilog" onclick="showLog()" style="margin-bottom:7px">View Log (0 incidents)</button>
+      <button class="btn bs" onclick="exportCSV()" style="margin-bottom:7px">Export CSV</button>
+      <button class="btn bd" onclick="clearLog()">Clear All Incidents</button>
+    </div>
+
+    <div class="tsec">
+      <div class="tsectl">CHANGE PIN</div>
+      <div class="fg"><span class="fl">NEW PIN</span><input type="password" id="tp1" maxlength="8" inputmode="numeric"></div>
+      <div class="fg"><span class="fl">CONFIRM PIN</span><input type="password" id="tp2" maxlength="8" inputmode="numeric"></div>
+      <button class="btn bp" onclick="changePin()">CHANGE PIN</button>
+      <div id="pres" class="err" style="margin-top:7px"></div>
+    </div>
+    <div style="height:18px"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ ALERT OVERLAY ═══════════════════ -->
+<div id="oa">
+  <div class="acard">
+    <span class="aicon">⚠️</span>
+    <div class="atitle" id="atitle">RISK ALERT</div>
+    <div class="abody" id="abody">Threshold exceeded. Reduce speed immediately.</div>
+    <div class="astat" id="astat">—</div>
+    <div class="aaifb" id="aaifb"></div>
+    <button class="btn bd" onclick="dismissAlert()" style="margin-top:14px">ACKNOWLEDGE</button>
+  </div>
+</div>
+
+<!-- ═══════════════ PIN OVERLAY ══════════════════════ -->
+<div id="op">
+  <div class="pcard">
+    <div class="ptitle">TUNING ACCESS</div>
+    <div class="psub">ENTER YOUR PIN</div>
+    <div class="pdots">
+      <div class="pd" id="pd0"></div><div class="pd" id="pd1"></div>
+      <div class="pd" id="pd2"></div><div class="pd" id="pd3"></div>
+    </div>
+    <div class="ppad">
+      <button class="pk" onclick="pk('1')">1</button><button class="pk" onclick="pk('2')">2</button><button class="pk" onclick="pk('3')">3</button>
+      <button class="pk" onclick="pk('4')">4</button><button class="pk" onclick="pk('5')">5</button><button class="pk" onclick="pk('6')">6</button>
+      <button class="pk" onclick="pk('7')">7</button><button class="pk" onclick="pk('8')">8</button><button class="pk" onclick="pk('9')">9</button>
+      <button class="pk emp"></button><button class="pk" onclick="pk('0')">0</button><button class="pk del" onclick="pk('del')">⌫</button>
+    </div>
+    <div class="perr" id="perr"></div>
+    <button class="btn bs" onclick="closePIN()" style="margin-top:9px">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══════════════ INCIDENT LOG OVERLAY ════════════ -->
+<div id="oi">
+  <div class="thead">
+    <div class="ttitle" style="color:var(--danger)">📋 INCIDENT LOG</div>
+    <button class="hbtn" onclick="closeLog()">✕ CLOSE</button>
+  </div>
+  <div class="ilist" id="ilist"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  DRIVEGUARD AI — Complete Application
+// ═══════════════════════════════════════════════════════════
+
+const ST = {
+  spd:0, gLat:0, gLon:0, gVert:1, gPeak:0,
+  scores:{s:0,v:50,c:0,g:0,m:0}, comp:0,
+  veh:{year:'',make:'',model:'',stars:0,cls:'sedan',vin:''},
+  cfg:{
+    pinHash:'', demo:false, demoSpd:0, demoG:0, alertOn:false,
+    w:{s:35,v:20,c:15,g:20,m:10},
+    thr:{score:65,speed:75,gf:0.5},
+    amode:'immediate', cooldown:15, count:3,
+    email:'',ejsSvc:'',ejsTmpl:'',ejsKey:'',
+    apiKey:'', aiInterval:30
+  },
+  incidents:[], sessCount:0, alertActive:false,
+  lastAlert:0, lastAI:0, aiRunning:false,
+  gpsWid:null, gpsOn:false
+};
+
+// ─── AI Coach ────────────────────────────────────────────
+const chatHistory = [];
+
+function getDrivingContext(){
+  const v=ST.veh;const s=ST.scores;
+  return {
+    vehicle:`${v.year} ${v.make} ${v.model}`.trim()||'Unknown vehicle',
+    safety_stars:v.stars||'unknown',
+    current_speed_mph:Math.round(ST.spd),
+    composite_risk_score:ST.comp,
+    risk_level:scoreLbl(ST.comp),
+    lateral_g:ST.gLat.toFixed(3),
+    braking_g:ST.gLon.toFixed(3),
+    peak_g_this_session:ST.gPeak.toFixed(3),
+    factor_scores:{
+      speed_risk:Math.round(s.s),
+      vehicle_safety:Math.round(s.v),
+      crash_probability:Math.round(s.c),
+      gforce_severity:Math.round(s.g),
+      maneuver_risk:Math.round(s.m)
+    },
+    session_incidents:ST.sessCount,
+    recent_incidents:ST.incidents.slice(-5).map(i=>({time:i.ts,speed:i.spd,risk:i.comp,trigger:i.type})),
+    alert_thresholds:{score:ST.cfg.thr.score,speed:ST.cfg.thr.speed,gforce:ST.cfg.thr.gf}
+  };
+}
+
+const SYSTEM_PROMPT=`You are DriveGuard AI, an expert driving safety coach embedded in a real-time crash risk monitoring app. You have access to live telemetry from the driver's vehicle. Be concise, direct, and safety-focused. Never be preachy — give concrete, actionable advice. For the dashboard strip, keep responses under 2 sentences. For chat, be more detailed but never exceed 4 paragraphs. For parent alert emails, write them in a calm, informative tone — factual, not alarming. You understand that higher risk scores (65+) require immediate attention while moderate scores (40-65) warrant caution.`;
+
+async function callClaude(userMsg, contextData, maxTok=300){
+  if(!ST.cfg.apiKey)return null;
+  const ctx=contextData||getDrivingContext();
+  const messages=[
+    ...chatHistory,
+    {role:'user',content:`LIVE TELEMETRY:\n${JSON.stringify(ctx,null,2)}\n\nUSER: ${userMsg}`}
+  ];
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':ST.cfg.apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:maxTok,
+        system:SYSTEM_PROMPT,
+        messages
+      })
+    });
+    if(!resp.ok){
+      const err=await resp.json().catch(()=>({}));
+      console.error('DriveGuard AI error:',resp.status,err?.error?.message||'');
+      return null;
+    }
+    const data=await resp.json();
+    const text=data?.content?.[0]?.text||'';
+    if(text){
+      chatHistory.push({role:'user',content:`LIVE TELEMETRY:\n${JSON.stringify(ctx,null,2)}\n\nUSER: ${userMsg}`});
+      chatHistory.push({role:'assistant',content:text});
+      if(chatHistory.length>20)chatHistory.splice(0,2); // trim oldest
+    }
+    return text;
+  }catch(e){console.error('DriveGuard AI fetch error:',e);return null;}
+}
+
+// Periodic AI strip update
+async function runAICoach(){
+  if(ST.aiRunning||!ST.cfg.apiKey)return;
+  const now=Date.now();
+  if(now-ST.lastAI<ST.cfg.aiInterval*1000)return;
+  ST.aiRunning=true;ST.lastAI=now;
+  const strip=document.getElementById('aistrip-text');
+  strip.innerHTML='<span class="aithink">▋</span>';
+  const prompt=ST.comp>=65
+    ?'Give me a brief, urgent safety assessment of my current driving in one sentence.'
+    :ST.comp>=40
+    ?'Give me a brief coaching tip about my current driving in one sentence.'
+    :'Give me a one-sentence positive observation or proactive tip about my current driving.';
+  const r=await callClaude(prompt,null,120);
+  strip.textContent=r||'Monitoring your drive...';
+  ST.aiRunning=false;
+}
+
+// AI-powered alert analysis
+async function getAlertAnalysis(type,val){
+  if(!ST.cfg.apiKey)return null;
+  return await callClaude(
+    `Generate a 1-sentence safety coaching message for a driver who just triggered a ${type} alert at ${val}. Be direct and actionable.`,
+    getDrivingContext(),100
+  );
+}
+
+// AI-powered email body
+async function generateAlertEmail(type,val){
+  if(!ST.cfg.apiKey)return null;
+  return await callClaude(
+    `Write a concise parent alert email body (3-4 sentences) for this driving event. Type: ${type}, Value: ${val}. Be informative but not alarmist. Include what happened, context, and one suggestion.`,
+    getDrivingContext(),250
+  );
+}
+
+// Chat UI
+async function sendAI(){
+  const inp=document.getElementById('aiinp');
+  const msg=inp.value.trim();if(!msg)return;
+  if(!ST.cfg.apiKey){
+    addChatMsg('ai','⚠️ No API key set. Add your Anthropic API key in the Tuning Panel (⚙ TUNE → AI Coach Settings).');
+    return;
+  }
+  addChatMsg('user',msg);
+  inp.value='';
+  const think=addChatMsg('ai','<span class="aithink">▋</span> Analyzing...',true);
+  const r=await callClaude(msg,null,500);
+  think.innerHTML=r||'Sorry, I could not process that request. Check your API key.';
+}
+function sendQ(q){document.getElementById('aiinp').value=q;sendAI();}
+function addChatMsg(role,html,ret=false){
+  const chat=document.getElementById('aichat');
+  const div=document.createElement('div');div.className='msg '+role;
+  const icon=document.createElement('span');icon.className='micon';icon.textContent=role==='ai'?'🤖':'👤';
+  const bub=document.createElement('div');bub.className='mbubble';bub.innerHTML=html;
+  div.appendChild(icon);div.appendChild(bub);
+  chat.appendChild(div);chat.scrollTop=chat.scrollHeight;
+  return ret?bub:null;
+}
+function aiStripToggle(){
+  document.getElementById('aistrip').classList.toggle('expanded');
+}
+async function testAI(){
+  const key=document.getElementById('tapikey').value.trim();
+  const r=document.getElementById('aires');
+  if(!key){r.textContent='Enter an API key first.';r.style.color='var(--danger)';return;}
+  r.textContent='Testing...';r.style.color='var(--dim)';
+  const orig=ST.cfg.apiKey;ST.cfg.apiKey=key;
+  const res=await callClaude('Say "DriveGuard AI connected!" in exactly 4 words.',null,20);
+  ST.cfg.apiKey=orig;
+  if(res){r.textContent='✓ '+res;r.style.color='var(--safe)';}
+  else{r.textContent='Connection failed. Verify API key.';r.style.color='var(--danger)';}
+}
+
+// ─── Risk Math ───────────────────────────────────────────
+function spdCurve(mph){
+  const t=[[0,0],[10,3],[20,7],[25,13],[30,22],[35,32],[40,42],[45,52],[50,60],[55,67],[60,73],[65,79],[70,84],[75,88],[80,92],[90,96],[150,99]];
+  for(let i=1;i<t.length;i++){if(mph<=t[i][0]){const p=(mph-t[i-1][0])/(t[i][0]-t[i-1][0]);return t[i-1][1]+p*(t[i][1]-t[i-1][1]);}}return 99;
+}
+function vehFactor(stars){return stars>=5?10:stars===4?28:stars===3?50:stars===2?68:stars===1?85:50}
+function crashProb(mph,gLat,gLon){
+  let p=0;
+  if(mph>70)p+=45;else if(mph>55)p+=30;else if(mph>40)p+=18;else if(mph>25)p+=8;
+  if(Math.abs(gLat)>0.45)p+=35;else if(Math.abs(gLat)>0.3)p+=18;else if(Math.abs(gLat)>0.15)p+=6;
+  if(gLon<-0.45)p+=20;else if(gLon<-0.3)p+=10;
+  return Math.min(p,100);
+}
+function gfRisk(lat,lon,vert){
+  const c=Math.sqrt(lat*lat+lon*lon+Math.max(0,vert-1)*Math.max(0,vert-1));
+  if(c<0.12)return 0;if(c<0.2)return 10;if(c<0.3)return 22;if(c<0.4)return 38;
+  if(c<0.5)return 56;if(c<0.65)return 72;if(c<0.85)return 84;return 92;
+}
+function manRisk(mph,gLat,gLon){
+  let r=0;const lxs=Math.abs(gLat)*mph;
+  if(lxs>22)r+=65;else if(lxs>12)r+=40;else if(lxs>6)r+=18;
+  if(gLon<-0.38&&mph>40)r+=28;if(gLon>0.35&&mph>55)r+=18;
+  return Math.min(r,100);
+}
+function calcComp(){
+  const w=ST.cfg.w,s=ST.scores,tot=w.s+w.v+w.c+w.g+w.m;
+  if(!tot)return 0;
+  return Math.round((s.s*w.s+s.v*w.v+s.c*w.c+s.g*w.g+s.m*w.m)/tot);
+}
+function updScores(){
+  ST.scores.s=spdCurve(ST.spd);ST.scores.v=vehFactor(ST.veh.stars);
+  ST.scores.c=crashProb(ST.spd,ST.gLat,ST.gLon);ST.scores.g=gfRisk(ST.gLat,ST.gLon,ST.gVert);
+  ST.scores.m=manRisk(ST.spd,ST.gLat,ST.gLon);ST.comp=calcComp();
+}
+
+// ─── Config ──────────────────────────────────────────────
+function saveCfg(){
+  try{localStorage.setItem('dg_cfg',JSON.stringify(ST.cfg));
+      localStorage.setItem('dg_veh',JSON.stringify(ST.veh));
+      localStorage.setItem('dg_inc',JSON.stringify(ST.incidents));}catch(e){}
+}
+function loadCfg(){
+  try{
+    const c=localStorage.getItem('dg_cfg');if(c)Object.assign(ST.cfg,JSON.parse(c));
+    const v=localStorage.getItem('dg_veh');if(v)Object.assign(ST.veh,JSON.parse(v));
+    const i=localStorage.getItem('dg_inc');if(i)ST.incidents=JSON.parse(i);
+    ST.sessCount=0;
+  }catch(e){}
+}
+const isFirst=()=>!localStorage.getItem('dg_cfg');
+
+// ─── PIN ─────────────────────────────────────────────────
+async function hashPin(p){
+  const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(p));
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+async function checkPin(p){const h=await hashPin(p);if(!ST.cfg.pinHash)return h===(await hashPin('2049'));return h===ST.cfg.pinHash;}
+let pinBuf='',pinCB=null;
+function openPIN(cb){pinBuf='';pinCB=cb;updPDots();document.getElementById('perr').textContent='';document.getElementById('op').classList.add('active')}
+function closePIN(){document.getElementById('op').classList.remove('active')}
+function updPDots(){for(let i=0;i<4;i++){const d=document.getElementById('pd'+i);d.className='pd';if(i<pinBuf.length)d.classList.add('fill')}}
+async function pk(k){
+  if(k==='del'){pinBuf=pinBuf.slice(0,-1);updPDots();return;}
+  if(pinBuf.length>=8)return;pinBuf+=k;updPDots();
+  if(pinBuf.length>=4){
+    const ok=await checkPin(pinBuf);
+    if(ok){closePIN();if(pinCB)pinCB();}
+    else if(pinBuf.length>=8){
+      for(let i=0;i<4;i++)document.getElementById('pd'+i).className='pd err';
+      document.getElementById('perr').textContent='INCORRECT PIN';
+      setTimeout(()=>{pinBuf='';updPDots();document.getElementById('perr').textContent='';},1400);
+    }
+  }
+}
+
+// ─── Screens ─────────────────────────────────────────────
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function openTuning(){openPIN(()=>{fillTuning();show('st')})}
+
+// ─── GPS / Motion ─────────────────────────────────────────
+function startGPS(){
+  if(!navigator.geolocation)return;
+  ST.gpsWid=navigator.geolocation.watchPosition(
+    p=>{document.getElementById('gdot').classList.add('on');
+        if(!ST.cfg.demo)ST.spd=Math.round((p.coords.speed||0)*2.237);},
+    ()=>document.getElementById('gdot').classList.remove('on'),
+    {enableHighAccuracy:true,maximumAge:800}
+  );
+}
+function reqGPS(){navigator.geolocation.getCurrentPosition(()=>{document.getElementById('bgps').textContent='✅ GPS Enabled';startGPS();},()=>{document.getElementById('bgps').textContent='❌ GPS Denied';})}
+function reqMotion(){
+  if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
+    DeviceMotionEvent.requestPermission().then(r=>{
+      if(r==='granted'){document.getElementById('bmot').textContent='✅ Motion Enabled';startMotion();}
+      else document.getElementById('bmot').textContent='❌ Motion Denied';
+    }).catch(()=>{document.getElementById('bmot').textContent='❌ Motion Error';});
+  }else{document.getElementById('bmot').textContent='✅ Motion Enabled';startMotion();}
+}
+function startMotion(){
+  window.addEventListener('devicemotion',e=>{
+    const a=e.accelerationIncludingGravity;if(!a)return;
+    ST.gLat=Math.abs((a.x||0)/9.81);ST.gLon=(a.y||0)/9.81;ST.gVert=Math.abs((a.z||0)/9.81);
+    const c=Math.sqrt(ST.gLat*ST.gLat+ST.gLon*ST.gLon);if(c>ST.gPeak)ST.gPeak=c;
+  });
+}
+function toggleDemo(){
+  if(ST.cfg.demo){setDemo(false);alert('Demo mode OFF — using GPS');}
+  else{const s=prompt('Demo speed (MPH):','55');if(s!==null){ST.cfg.demoSpd=parseInt(s)||55;ST.cfg.demo=true;}}
+}
+function setDemo(on){
+  ST.cfg.demo=on;
+  if(document.getElementById('dmode'))document.getElementById('dmode').textContent=on?'⚡ Demo active':'GPS/motion mode active';
+}
+
+// ─── NHTSA ───────────────────────────────────────────────
+const MAKES_LIST=['Acura','Audi','BMW','Buick','Cadillac','Chevrolet','Chrysler','Dodge','Ford','Genesis','GMC','Honda','Hyundai','Infiniti','Jaguar','Jeep','Kia','Land Rover','Lexus','Lincoln','Mazda','Mercedes-Benz','Mercury','Mini','Mitsubishi','Nissan','Oldsmobile','Pontiac','Porsche','Ram','Saturn','Scion','Subaru','Tesla','Toyota','Volkswagen','Volvo'];
+async function loadMakes(){
+  const sel=document.getElementById('wmk');
+  // Try NHTSA passenger-cars-only endpoint first
+  try{
+    const r=await fetch('https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/passenger%20car?format=json');
+    const d=await r.json();
+    if(d.Results&&d.Results.length>0){
+      const names=[...new Set(d.Results.map(m=>m.MakeName))].sort();
+      names.forEach(m=>{const o=document.createElement('option');o.value=m.toUpperCase();o.textContent=m;sel.appendChild(o);});
+      return;
+    }
+  }catch(e){}
+  // Static fallback
+  MAKES_LIST.forEach(m=>{const o=document.createElement('option');o.value=m.toUpperCase();o.textContent=m;sel.appendChild(o);});
+}
+const FB_MODELS={
+  'TOYOTA':['4Runner','Avalon','C-HR','Camry','Corolla','Highlander','Land Cruiser','Prius','RAV4','Sequoia','Sienna','Tacoma','Tundra','Venza','Yaris'],
+  'FORD':['Bronco','Bronco Sport','Edge','Escape','Expedition','Explorer','F-150','F-250','F-350','Fusion','Maverick','Mustang','Ranger','Transit'],
+  'CHEVROLET':['Blazer','Colorado','Corvette','Equinox','Express','Malibu','Silverado 1500','Silverado 2500HD','Suburban','Tahoe','Traverse','Trax'],
+  'HONDA':['Accord','Civic','CR-V','Element','Fit','HR-V','Odyssey','Passport','Pilot','Ridgeline'],
+  'NISSAN':['370Z','Altima','Armada','Frontier','GT-R','Kicks','Leaf','Maxima','Murano','Pathfinder','Rogue','Sentra','Titan','Versa'],
+  'JEEP':['Cherokee','Compass','Gladiator','Grand Cherokee','Renegade','Wrangler'],
+  'DODGE':['Challenger','Charger','Durango','Grand Caravan','Journey'],
+  'RAM':['1500','2500','3500','ProMaster','ProMaster City'],
+  'GMC':['Acadia','Canyon','Sierra 1500','Sierra 2500HD','Terrain','Yukon','Yukon XL'],
+  'SUBARU':['Ascent','BRZ','Crosstrek','Forester','Impreza','Legacy','Outback','WRX'],
+  'KIA':['Carnival','EV6','Forte','K5','Niro','Seltos','Sorento','Soul','Sportage','Telluride'],
+  'HYUNDAI':['Accent','Elantra','Ioniq 5','Kona','Palisade','Santa Cruz','Santa Fe','Sonata','Tucson','Venue'],
+  'BMW':['2 Series','3 Series','4 Series','5 Series','7 Series','M3','M5','X1','X3','X5','X7','Z4'],
+  'MERCEDES-BENZ':['A-Class','C-Class','E-Class','GLC','GLE','S-Class'],
+  'VOLKSWAGEN':['Atlas','Golf','ID.4','Jetta','Passat','Taos','Tiguan'],
+  'TESLA':['Cybertruck','Model 3','Model S','Model X','Model Y'],
+  'MAZDA':['CX-30','CX-5','CX-50','CX-9','Mazda3','Mazda6','MX-5 Miata'],
+  'CHRYSLER':['300','Pacifica','Town & Country','Voyager'],
+  'ACURA':['ILX','MDX','RDX','TLX'],
+  'LEXUS':['ES','GX','IS','LX','NX','RX','UX'],
+  'INFINITI':['Q50','Q60','QX50','QX60','QX80'],
+  'CADILLAC':['CT4','CT5','Escalade','XT4','XT5','XT6'],
+  'BUICK':['Enclave','Encore','Envision','LaCrosse'],
+  'LINCOLN':['Aviator','Corsair','Navigator','Nautilus'],
+  'AUDI':['A3','A4','A6','Q3','Q5','Q7','Q8','TT'],
+  'VOLVO':['S60','S90','XC40','XC60','XC90'],
+  'LAND ROVER':['Defender','Discovery','Range Rover','Range Rover Sport'],
+  'PONTIAC':['G6','Grand Prix','Solstice','Torrent','Vibe'],
+  'SATURN':['Aura','Ion','Outlook','Vue'],
+  'MERCURY':['Grand Marquis','Mariner','Milan','Mountaineer'],
+  'OLDSMOBILE':['Alero','Aurora','Bravada','Intrigue','Silhouette'],
+};
+async function loadModels(){
+  const rawMake=document.getElementById('wmk').value,sel=document.getElementById('wmo');
+  sel.innerHTML='<option>Loading...</option>';if(!rawMake)return;
+  const makeKey=rawMake.trim().toUpperCase();
+  try{
+    const r=await fetch('https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/'+encodeURIComponent(rawMake)+'?format=json');
+    const d=await r.json();
+    if(d.Results&&d.Results.length>0){
+      sel.innerHTML='<option value="">Select Model</option>';
+      d.Results.sort((a,b)=>a.Model_Name.localeCompare(b.Model_Name)).forEach(m=>{const o=document.createElement('option');o.value=m.Model_Name;o.textContent=m.Model_Name;sel.appendChild(o);});
+      return;
+    }
+  }catch(e){}
+  const fb=FB_MODELS[makeKey];
+  if(fb){
+    sel.innerHTML='<option value="">Select Model</option>';
+    fb.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o);});
+  }else{
+    sel.innerHTML='<option value="">Use VIN decode in Tuning Panel</option>';
+  }
+}
+async function fetchStars(yr,make,model){
+  try{const r=await fetch(`https://api.nhtsa.dot.gov/SafetyRatings/modelyear/${yr}/make/${encodeURIComponent(make)}/model/${encodeURIComponent(model)}`);const d=await r.json();if(d.Results&&d.Results.length)return parseInt(d.Results[0].OverallRating)||0;}catch(e){}return 0;
+}
+async function decodeVIN(){
+  const vin=document.getElementById('tvin').value.trim().toUpperCase();
+  if(vin.length!==17){document.getElementById('vinres').textContent='VIN must be 17 characters.';return;}
+  document.getElementById('vinres').textContent='Decoding...';
+  try{
+    const r=await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${vin}?format=json`);
+    const d=await r.json();const g=v=>d.Results.find(x=>x.Variable===v)?.Value||'';
+    const yr=g('Model Year'),mk=g('Make'),mo=g('Model'),tr=g('Trim'),body=g('Body Class');
+    ST.veh.year=yr;ST.veh.make=mk;ST.veh.model=mo;ST.veh.vin=vin;
+    if(/truck/i.test(body))ST.veh.cls='truck';else if(/suv|utility/i.test(body))ST.veh.cls='suv';else ST.veh.cls='sedan';
+    if(yr&&mk&&mo)ST.veh.stars=await fetchStars(yr,mk,mo);
+    document.getElementById('vinres').innerHTML=`<strong style="color:var(--safe)">${yr} ${mk} ${mo} ${tr}</strong><br>Body: ${body} | Stars: ${ST.veh.stars||'N/A'}<br><span style="color:var(--safe)">✓ Vehicle updated</span>`;
+    updVehicleDisplay();saveCfg();
+  }catch(e){document.getElementById('vinres').textContent='Decode failed.';}
+}
+
+// ─── Gauge ───────────────────────────────────────────────
+let gCanvas,gCtx,gW,gH;
+function initGauge(){
+  gCanvas=document.getElementById('gc');gCtx=gCanvas.getContext('2d');
+  function rsz(){const wrap=gCanvas.parentElement;gW=wrap.clientWidth;gH=Math.min(gW*0.62,155);gCanvas.width=gW;gCanvas.height=gH;drawGauge(0,'#00e676');}
+  rsz();window.addEventListener('resize',rsz);
+}
+function drawGauge(score,color){
+  if(!gCtx)return;
+  const cx=gW/2,cy=gH*0.9,r=Math.min(gW*0.43,gH*0.95);
+  const SA=Math.PI*1.25,EA=SA-Math.PI*1.5,LINE=Math.max(13,r*0.13);
+  gCtx.clearRect(0,0,gW,gH);
+  // Zone fills
+  [{end:SA-Math.PI*0.5,col:'rgba(0,230,118,.15)'},{end:SA-Math.PI,col:'rgba(255,171,0,.15)'},{end:EA,col:'rgba(255,23,68,.15)'}].reduce((p,z)=>{
+    gCtx.beginPath();gCtx.arc(cx,cy,r,p,z.end,true);gCtx.strokeStyle=z.col;gCtx.lineWidth=LINE+6;gCtx.lineCap='butt';gCtx.stroke();return z.end;
+  },SA);
+  // Track
+  gCtx.beginPath();gCtx.arc(cx,cy,r,SA,EA,true);gCtx.strokeStyle='#1c1c34';gCtx.lineWidth=LINE;gCtx.lineCap='round';gCtx.stroke();
+  // Active
+  if(score>0.5){
+    const ae=SA-(score/100)*Math.PI*1.5;
+    gCtx.beginPath();gCtx.arc(cx,cy,r,SA,ae,true);
+    gCtx.strokeStyle=color;gCtx.lineWidth=LINE;gCtx.lineCap='round';
+    gCtx.shadowColor=color;gCtx.shadowBlur=12;gCtx.stroke();gCtx.shadowBlur=0;
+  }
+  // Ticks
+  for(let t=0;t<=4;t++){
+    const a=SA-(t/4)*Math.PI*1.5,ir=r-LINE*0.65,or=r+LINE*0.1;
+    gCtx.beginPath();gCtx.moveTo(cx+ir*Math.cos(a),cy+ir*Math.sin(a));gCtx.lineTo(cx+or*Math.cos(a),cy+or*Math.sin(a));gCtx.strokeStyle='#28284a';gCtx.lineWidth=1.5;gCtx.stroke();
+  }
+}
+function scoreCol(s){return s<40?'#00e676':s<65?'#ffab00':'#ff1744'}
+function scoreLbl(s){if(s<15)return'SAFE';if(s<35)return'LOW RISK';if(s<55)return'MODERATE';if(s<70)return'HIGH RISK';if(s<85)return'CRITICAL';return'EXTREME'}
+function scoresClsCss(s){return s<40?'cs':s<65?'cw':'cd'}
+let lastScore=-1;
+function updGauge(sc){
+  if(Math.abs(sc-lastScore)<0.8)return;lastScore=sc;
+  drawGauge(sc,scoreCol(sc));
+  const el=document.getElementById('gscore');el.textContent=Math.round(sc);el.className='gscore '+scoresClsCss(sc);
+  document.getElementById('glbl').textContent=scoreLbl(sc);
+  document.getElementById('gpulse').classList.toggle('active',sc>=65);
+}
+
+// ─── Chart ───────────────────────────────────────────────
+let rChart=null;
+function initChart(){
+  const ctx=document.getElementById('rc').getContext('2d');
+  rChart=new Chart(ctx,{type:'bar',data:{labels:['Speed','Vehicle','Crash','G-Force','Maneuver'],datasets:[{data:[0,50,0,0,0],backgroundColor:Array(5).fill('#00e67640'),borderColor:Array(5).fill('#00e676'),borderWidth:1,borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{x:{min:0,max:100,grid:{color:'#1a1a2e'},ticks:{color:'#505880',font:{family:"'Share Tech Mono'",size:11}}},y:{grid:{display:false},ticks:{color:'#8890b0',font:{family:"'Share Tech Mono'",size:12}}}},animation:{duration:250}}});
+}
+function updChart(){
+  if(!rChart)return;
+  const vals=[ST.scores.s,ST.scores.v,ST.scores.c,ST.scores.g,ST.scores.m];
+  rChart.data.datasets[0].data=vals;
+  rChart.data.datasets[0].backgroundColor=vals.map(v=>scoreCol(v)+'55');
+  rChart.data.datasets[0].borderColor=vals.map(v=>scoreCol(v));
+  rChart.update('none');
+}
+
+// ─── Main Loop ────────────────────────────────────────────
+function updUI(){
+  if(ST.cfg.demo){
+    ST.spd=parseInt(document.getElementById('tdemo')?.value||0)||ST.cfg.demoSpd;
+    const dg=parseFloat(document.getElementById('tdemog')?.value||0)||ST.cfg.demoG;
+    ST.gLat=dg;ST.gLon=0;
+  }
+  updScores();updGauge(ST.comp);updChart();
+  const gc=Math.sqrt(ST.gLat*ST.gLat+ST.gLon*ST.gLon).toFixed(2);
+  document.getElementById('gspd').textContent=Math.round(ST.spd);
+  document.getElementById('ggf').textContent=gc+'g';
+  document.getElementById('glat').textContent=ST.gLat.toFixed(2)+'g';
+  document.getElementById('gbrk').textContent=Math.abs(ST.gLon).toFixed(2)+'g';
+  document.getElementById('sbspd').textContent=Math.round(ST.spd);
+  document.getElementById('sbgf').textContent=ST.gPeak.toFixed(1)+'g';
+  const inc=document.getElementById('sbinc');inc.textContent=ST.sessCount;inc.style.color=ST.sessCount>0?'var(--danger)':'var(--dim)';
+  if(ST.sessCount>0){document.getElementById('ibadge').style.display='block';document.getElementById('ibn').textContent=ST.sessCount;}
+  if(ST.cfg.alertOn)checkThresholds();
+  runAICoach();
+}
+
+// ─── Alerts ──────────────────────────────────────────────
+function toggleAlerts(){ST.cfg.alertOn=!ST.cfg.alertOn;const b=document.getElementById('altbtn');b.classList.toggle('on',ST.cfg.alertOn);b.textContent=ST.cfg.alertOn?'⚠ ALERTS ON':'⚠ ALERTS';}
+function checkThresholds(){
+  if(ST.alertActive)return;const t=ST.cfg.thr,now=Date.now(),mode=ST.cfg.amode;
+  let type='',val='';
+  if(ST.comp>=t.score){type='RISK SCORE';val=ST.comp+'/100';}
+  else if(ST.spd>=t.speed){type='SPEED';val=ST.spd+' MPH';}
+  else if(ST.gLat>=t.gf){type='G-FORCE';val=ST.gLat.toFixed(2)+'g lateral';}
+  if(!type)return;
+  if(mode==='cooldown'&&now-ST.lastAlert<ST.cfg.cooldown*60000)return;
+  if(mode==='count'&&ST.sessCount<ST.cfg.count-1){logInc(type);return;}
+  if(mode==='summary'){logInc(type);return;}
+  fireAlert(type,val);
+}
+async function fireAlert(type,val){
+  ST.alertActive=true;ST.lastAlert=Date.now();logInc(type);
+  document.getElementById('atitle').textContent=type+' ALERT';
+  document.getElementById('abody').textContent='Threshold exceeded. Reduce speed and stabilize vehicle.';
+  document.getElementById('astat').textContent=val;
+  document.getElementById('aaifb').textContent='';
+  document.getElementById('oa').classList.add('active');
+  beep();
+  // AI feedback on alert card
+  const aifb=await getAlertAnalysis(type,val);
+  if(aifb)document.getElementById('aaifb').textContent='"'+aifb+'"';
+  // AI-enhanced email
+  sendEmail(type,val);
+}
+function dismissAlert(){document.getElementById('oa').classList.remove('active');ST.alertActive=false;}
+function beep(){
+  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[880,660,880].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(0.25,ctx.currentTime+i*0.18);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.18+0.16);o.start(ctx.currentTime+i*0.18);o.stop(ctx.currentTime+i*0.18+0.17);});}catch(e){}
+}
+
+// ─── Incidents ───────────────────────────────────────────
+function logInc(type){
+  ST.sessCount++;
+  ST.incidents.push({ts:new Date().toISOString(),spd:ST.spd,gLat:ST.gLat.toFixed(3),gLon:ST.gLon.toFixed(3),comp:ST.comp,type,veh:[ST.veh.year,ST.veh.make,ST.veh.model].filter(Boolean).join(' '),aiSummary:''});
+  saveCfg();
+  // Async AI summary for log
+  if(ST.cfg.apiKey){
+    const idx=ST.incidents.length-1;
+    callClaude(`Summarize this incident in one sentence for a parent's report: ${type} at ${ST.spd}mph, risk score ${ST.comp}`,null,80).then(r=>{if(r&&ST.incidents[idx])ST.incidents[idx].aiSummary=r;saveCfg();});
+  }
+}
+function showLog(){
+  const list=document.getElementById('ilist');
+  if(!ST.incidents.length){list.innerHTML='<p style="font-family:var(--fmono);font-size:.72rem;color:var(--dim);text-align:center;margin-top:40px">No incidents this session.</p>';}
+  else{list.innerHTML=ST.incidents.slice().reverse().map(i=>{
+    const col=i.comp>=65?'var(--danger)':i.comp>=40?'var(--warn)':'var(--safe)';
+    return `<div class="iitem"><div class="itime">${new Date(i.ts).toLocaleString()} — ${i.veh||'Unknown Vehicle'}</div>
+    <div class="istats"><div class="istat"><div class="iv" style="color:${col}">${i.comp}</div><div class="il">RISK</div></div>
+    <div class="istat"><div class="iv">${i.spd}</div><div class="il">MPH</div></div>
+    <div class="istat"><div class="iv">${i.gLat}g</div><div class="il">LAT-G</div></div>
+    <div class="istat"><div class="iv" style="color:var(--warn)">${i.type}</div><div class="il">TRIGGER</div></div></div>
+    ${i.aiSummary?`<div class="iaisumm">🤖 ${i.aiSummary}</div>`:''}</div>`;
+  }).join('');}
+  document.getElementById('oi').classList.add('active');
+}
+function closeLog(){document.getElementById('oi').classList.remove('active');}
+function clearLog(){if(!confirm('Clear all incident records?'))return;ST.incidents=[];ST.sessCount=0;saveCfg();closeLog();}
+function exportCSV(){
+  if(!ST.incidents.length)return;
+  const h='Timestamp,Speed_MPH,Lat_G,Lon_G,Risk_Score,Trigger,Vehicle,AI_Summary';
+  const rows=ST.incidents.map(i=>`${i.ts},${i.spd},${i.gLat},${i.gLon},${i.comp},${i.type},"${i.veh||''}","${(i.aiSummary||'').replace(/"/g,"'")}"`);
+  const blob=new Blob([[h,...rows].join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`DriveGuard_${new Date().toISOString().split('T')[0]}.csv`;a.click();
+}
+
+// ─── EmailJS ─────────────────────────────────────────────
+function initEJS(){if(ST.cfg.ejsKey){try{emailjs.init(ST.cfg.ejsKey);}catch(e){}}}
+async function sendEmail(type,val){
+  if(!ST.cfg.ejsSvc||!ST.cfg.ejsTmpl||!ST.cfg.ejsKey||!ST.cfg.email)return;
+  const aiAnalysis=await generateAlertEmail(type,val)||`Alert triggered: ${type} at ${val}.`;
+  try{await emailjs.send(ST.cfg.ejsSvc,ST.cfg.ejsTmpl,{
+    to_email:ST.cfg.email,trigger_type:type,trigger_val:val,
+    risk_score:ST.comp,speed:ST.spd,lat_g:ST.gLat.toFixed(3),
+    ai_analysis:aiAnalysis,
+    vehicle:[ST.veh.year,ST.veh.make,ST.veh.model].filter(Boolean).join(' ')||'Unknown',
+    session_incidents:ST.sessCount,timestamp:new Date().toLocaleString()
+  });}catch(e){console.warn('Email failed',e);}
+}
+async function testEmail(){
+  const s=document.getElementById('tes').value.trim(),t=document.getElementById('tet').value.trim(),k=document.getElementById('tek').value.trim(),e=document.getElementById('te').value.trim();
+  const r=document.getElementById('eres');
+  if(!s||!t||!k||!e){r.textContent='Fill in all email fields first.';r.style.color='var(--danger)';return;}
+  r.textContent='Sending...';r.style.color='var(--dim)';
+  try{emailjs.init(k);await emailjs.send(s,t,{to_email:e,trigger_type:'TEST',trigger_val:'Test Alert',risk_score:'42',speed:'55',lat_g:'0.21',ai_analysis:'This is a test of the DriveGuard AI parent alert system.',vehicle:([ST.veh.year,ST.veh.make,ST.veh.model].filter(Boolean).join(' '))||'Test Vehicle',session_incidents:'0',timestamp:new Date().toLocaleString()});
+    r.textContent='✓ Test email sent!';r.style.color='var(--safe)';}
+  catch(ex){r.textContent='Failed: '+(ex.text||ex.message||'Check credentials');r.style.color='var(--danger)';}
+}
+
+// ─── Tuning ───────────────────────────────────────────────
+function fillTuning(){
+  const w=ST.cfg.w,t=ST.cfg.thr;
+  ['s','v','c','g','m'].forEach(k=>{document.getElementById('ws-'+k).value=w[k];document.getElementById('wv-'+k).textContent=w[k]+'%';});
+  document.getElementById('ts-s').value=t.score;document.getElementById('tv-s').textContent=t.score;
+  document.getElementById('ts-sp').value=t.speed;document.getElementById('tv-sp').textContent=t.speed;
+  document.getElementById('ts-g').value=t.gf*10;document.getElementById('tv-g').textContent=t.gf.toFixed(1)+'g';
+  document.getElementById('tamode').value=ST.cfg.amode;
+  document.getElementById('tcd').value=ST.cfg.cooldown;document.getElementById('tcn').value=ST.cfg.count;
+  document.getElementById('te').value=ST.cfg.email;document.getElementById('tes').value=ST.cfg.ejsSvc;
+  document.getElementById('tet').value=ST.cfg.ejsTmpl;document.getElementById('tek').value=ST.cfg.ejsKey;
+  document.getElementById('tapikey').value=ST.cfg.apiKey;
+  document.getElementById('taiint').value=ST.cfg.aiInterval;
+  document.getElementById('dmode').textContent=ST.cfg.demo?'⚡ Demo active':'GPS/motion mode active';
+  document.getElementById('vilog').textContent=`View Log (${ST.incidents.length} incidents)`;
+  // Pre-select current vehicle
+  if(ST.veh.year)document.getElementById('tyr').value=ST.veh.year;
+  document.getElementById('vres').textContent='';
+  const curMake=ST.veh.make?ST.veh.make.toUpperCase():'';
+  if(curMake){
+    const tmk=document.getElementById('tmk');
+    if([...tmk.options].some(o=>o.value===curMake)){
+      tmk.value=curMake;
+      loadTuningModels().then(()=>{
+        if(ST.veh.model)document.getElementById('tmo').value=ST.veh.model;
+      });
+    }
+  }
+}
+function updW(k,v){ST.cfg.w[k]=parseInt(v);document.getElementById('wv-'+k).textContent=v+'%';}
+function resetWeights(){Object.assign(ST.cfg.w,{s:35,v:20,c:15,g:20,m:10});fillTuning();}
+function saveTuning(){
+  ST.cfg.thr.score=parseInt(document.getElementById('ts-s').value);
+  ST.cfg.thr.speed=parseInt(document.getElementById('ts-sp').value);
+  ST.cfg.thr.gf=parseFloat(document.getElementById('ts-g').value)/10;
+  ST.cfg.amode=document.getElementById('tamode').value;
+  ST.cfg.cooldown=parseInt(document.getElementById('tcd').value);
+  ST.cfg.count=parseInt(document.getElementById('tcn').value);
+  ST.cfg.email=document.getElementById('te').value.trim();
+  ST.cfg.ejsSvc=document.getElementById('tes').value.trim();
+  ST.cfg.ejsTmpl=document.getElementById('tet').value.trim();
+  ST.cfg.ejsKey=document.getElementById('tek').value.trim();
+  ST.cfg.apiKey=document.getElementById('tapikey').value.trim();
+  ST.cfg.aiInterval=parseInt(document.getElementById('taiint').value)||30;
+  saveCfg();initEJS();show('sm');
+}
+async function changePin(){
+  const p1=document.getElementById('tp1').value,p2=document.getElementById('tp2').value,r=document.getElementById('pres');
+  if(!p1||p1.length<4){r.style.color='var(--danger)';r.textContent='PIN must be at least 4 digits.';return;}
+  if(p1!==p2){r.style.color='var(--danger)';r.textContent='PINs do not match.';return;}
+  ST.cfg.pinHash=await hashPin(p1);saveCfg();r.style.color='var(--safe)';r.textContent='✓ PIN changed.';document.getElementById('tp1').value='';document.getElementById('tp2').value='';
+}
+
+// ─── Wizard ───────────────────────────────────────────────
+const stepTitles=['','Secure Access Setup','Your Vehicle','Parent Alerts','AI Coach Setup','Permissions'];
+const stepLabels=['','STEP 1 OF 5','STEP 2 OF 5','STEP 3 OF 5','STEP 4 OF 5','STEP 5 OF 5'];
+function gotoStep(n){
+  document.querySelectorAll('.wstep').forEach(s=>s.classList.remove('active'));
+  document.getElementById('ws'+n).classList.add('active');
+  for(let i=1;i<=5;i++)document.getElementById('sd'+i).classList.toggle('active',i<=n);
+  document.getElementById('wtitle').textContent=stepTitles[n];document.getElementById('wlbl').textContent=stepLabels[n];
+}
+async function wn(step,skip){
+  document.getElementById('e'+step)&&(document.getElementById('e'+step).textContent='');
+  if(step===1){
+    const p1=document.getElementById('wp1').value||'2049',p2=document.getElementById('wp2').value||'2049';
+    if(!skip&&p1!==p2){document.getElementById('e1').textContent='PINs do not match.';return;}
+    if(!skip&&p1.length<4){document.getElementById('e1').textContent='PIN must be at least 4 digits.';return;}
+    ST.cfg.pinHash=await hashPin(p1);gotoStep(2);
+  }else if(step===2){
+    if(!skip){
+      const yr=document.getElementById('wyr').value,mk=document.getElementById('wmk').value,mo=document.getElementById('wmo').value;
+      if(!yr||!mk||!mo){document.getElementById('e2').textContent='Select Year, Make, and Model.';return;}
+      ST.veh.year=yr;ST.veh.make=mk;ST.veh.model=mo;ST.veh.stars=await fetchStars(yr,mk,mo);
+    }
+    gotoStep(3);
+  }else if(step===3){
+    if(!skip){ST.cfg.email=document.getElementById('we').value.trim();ST.cfg.ejsSvc=document.getElementById('wes').value.trim();ST.cfg.ejsTmpl=document.getElementById('wet').value.trim();ST.cfg.ejsKey=document.getElementById('wek').value.trim();}
+    gotoStep(4);
+  }else if(step===4){
+    if(!skip)ST.cfg.apiKey=document.getElementById('wapikey').value.trim();
+    gotoStep(5);
+  }
+}
+function wfinish(){saveCfg();initEJS();updVehicleDisplay();show('sm');startGPS();startMotion();}
+function updVehicleDisplay(){
+  const s=[ST.veh.year,ST.veh.make,ST.veh.model].filter(Boolean).join(' ')||'No vehicle set';
+  document.getElementById('vdisp').textContent=s+(ST.veh.stars?'  ★'.repeat(Math.min(ST.veh.stars,5)):'');
+}
+function popYears(){
+  const sel=document.getElementById('wyr');
+  const tsel=document.getElementById('tyr');
+  const y=new Date().getFullYear();
+  for(let i=y;i>=1981;i--){
+    [sel,tsel].forEach(s=>{const o=document.createElement('option');o.value=i;o.textContent=i;s.appendChild(o);});
+  }
+}
+async function loadTuningMakes(){
+  const sel=document.getElementById('tmk');
+  try{
+    const r=await fetch('https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/passenger%20car?format=json');
+    const d=await r.json();
+    if(d.Results&&d.Results.length>0){
+      const names=[...new Set(d.Results.map(m=>m.MakeName))].sort();
+      names.forEach(m=>{const o=document.createElement('option');o.value=m.toUpperCase();o.textContent=m;sel.appendChild(o);});
+      return;
+    }
+  }catch(e){}
+  MAKES_LIST.forEach(m=>{const o=document.createElement('option');o.value=m.toUpperCase();o.textContent=m;sel.appendChild(o);});
+}
+async function loadTuningModels(){
+  const rawMake=document.getElementById('tmk').value,sel=document.getElementById('tmo');
+  sel.innerHTML='<option>Loading...</option>';if(!rawMake)return;
+  const makeKey=rawMake.trim().toUpperCase();
+  try{
+    const r=await fetch('https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/'+encodeURIComponent(rawMake)+'?format=json');
+    const d=await r.json();
+    if(d.Results&&d.Results.length>0){
+      sel.innerHTML='<option value="">Select Model</option>';
+      d.Results.sort((a,b)=>a.Model_Name.localeCompare(b.Model_Name)).forEach(m=>{const o=document.createElement('option');o.value=m.Model_Name;o.textContent=m.Model_Name;sel.appendChild(o);});
+      return;
+    }
+  }catch(e){}
+  const fb=FB_MODELS[makeKey];
+  if(fb){sel.innerHTML='<option value="">Select Model</option>';fb.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o);});}
+  else sel.innerHTML='<option value="">Use VIN decode below</option>';
+}
+async function saveVehicle(){
+  const yr=document.getElementById('tyr').value,mk=document.getElementById('tmk').value,mo=document.getElementById('tmo').value;
+  const res=document.getElementById('vres');
+  if(!yr||!mk||!mo){res.style.color='var(--danger)';res.textContent='Select Year, Make, and Model.';return;}
+  res.style.color='var(--dim)';res.textContent='Fetching safety data...';
+  ST.veh.year=yr;ST.veh.make=mk;ST.veh.model=mo;ST.veh.vin='';
+  ST.veh.stars=await fetchStars(yr,mk,mo);
+  updVehicleDisplay();saveCfg();
+  res.style.color='var(--safe)';res.textContent=`✓ Vehicle updated: ${yr} ${mk} ${mo}${ST.veh.stars?' (★'+ST.veh.stars+')':''}`;
+}
+
+// ─── Init ─────────────────────────────────────────────────
+function init(){
+  popYears();loadMakes();loadTuningMakes();
+  if(isFirst()){show('sw');}
+  else{loadCfg();updVehicleDisplay();initEJS();show('sm');startGPS();startMotion();}
+  initGauge();initChart();setInterval(updUI,500);
+  // Initial AI greeting after 2s
+  setTimeout(()=>{
+    if(ST.cfg.apiKey&&document.getElementById('sm').classList.contains('active')){
+      callClaude('Give a one-sentence welcome message to a driver who just started DriveGuard.',null,60).then(r=>{if(r)document.getElementById('aistrip-text').textContent=r;});
+    }else if(!ST.cfg.apiKey){document.getElementById('aistrip-text').textContent='Add API key in ⚙ TUNE for AI coaching.';}
+  },2000);
+}
+window.addEventListener('beforeunload',()=>{if(ST.cfg.amode==='summary'&&ST.sessCount>0)sendEmail('SESSION SUMMARY',`${ST.sessCount} incidents recorded`);});
+window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
