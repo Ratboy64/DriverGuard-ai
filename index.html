@@ -72,8 +72,8 @@ textarea{resize:vertical;min-height:70px;line-height:1.5}
 .dsplit{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 
 /* Gauge — compact, fixed height */
-.gpanel{flex-shrink:0;height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 6px 4px;background:var(--panel);border-bottom:2px solid var(--border);position:relative}
-.gwrap{position:relative;width:100%;max-width:260px}
+.gpanel{flex-shrink:0;height:235px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 6px 4px;background:var(--panel);border-bottom:2px solid var(--border);position:relative}
+.gwrap{position:relative;width:100%;max-width:280px}
 #gc{width:100%;display:block}
 .govl{position:absolute;bottom:10%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;white-space:nowrap}
 .gscore{font-family:var(--fhud);font-size:2.8rem;font-weight:900;line-height:1;transition:color .5s}
@@ -672,7 +672,11 @@ function spdCurve(mph){
   const t=[[0,0],[10,3],[20,7],[25,13],[30,22],[35,32],[40,42],[45,52],[50,60],[55,67],[60,73],[65,79],[70,84],[75,88],[80,92],[90,96],[150,99]];
   for(let i=1;i<t.length;i++){if(mph<=t[i][0]){const p=(mph-t[i-1][0])/(t[i][0]-t[i-1][0]);return t[i-1][1]+p*(t[i][1]-t[i-1][1]);}}return 99;
 }
-function vehFactor(stars){return stars>=5?10:stars===4?28:stars===3?50:stars===2?68:stars===1?85:50}
+function vehFactor(stars){
+  // stars=0 means not yet fetched or not rated — use moderate 50 as default
+  if(!stars||stars<1)return 50;
+  return stars>=5?10:stars===4?28:stars===3?50:stars===2?68:85;
+}
 function crashProb(mph,gLat,gLon){
   let p=0;
   if(mph>70)p+=45;else if(mph>55)p+=30;else if(mph>40)p+=18;else if(mph>25)p+=8;
@@ -1003,13 +1007,28 @@ async function decodeVIN(){
 let gCanvas,gCtx,gW,gH;
 function initGauge(){
   gCanvas=document.getElementById('gc');gCtx=gCanvas.getContext('2d');
-  function rsz(){const wrap=gCanvas.parentElement;gW=wrap.clientWidth;gH=Math.min(gW*0.62,155);gCanvas.width=gW;gCanvas.height=gH;drawGauge(0,'#00e676');}
+  function rsz(){
+    const wrap=gCanvas.parentElement;
+    gW=wrap.clientWidth;
+    // Height must accommodate the full semicircle arc above cy
+    // Arc spans 270° centred on bottom — top of arc is at cy - r
+    // Set gH so that r fits with 8px clearance at top
+    gH=Math.round(gW*0.58);
+    gCanvas.width=gW;gCanvas.height=gH;
+    drawGauge(0,'#00e676');
+  }
   rsz();window.addEventListener('resize',rsz);
 }
 function drawGauge(score,color){
   if(!gCtx)return;
-  const cx=gW/2,cy=gH*0.9,r=Math.min(gW*0.43,gH*0.95);
-  const SA=Math.PI*1.25,EA=SA-Math.PI*1.5,LINE=Math.max(13,r*0.13);
+  // Arc is 270°, start=225° (bottom-left), end=315° (bottom-right), apex at top-centre
+  // cy at 88% height, r sized so apex (cy-r) has at least 8px clearance from top
+  const LINE=Math.max(14,gW*0.055);
+  const r   =Math.min(gW*0.40, gH-LINE-8);   // never taller than canvas minus lineWidth
+  const cx  =gW/2;
+  const cy  =Math.min(gH*0.92, r+LINE+6);    // ensure apex stays in canvas
+  const SA  =Math.PI*1.25;                    // 225° — start angle
+  const EA  =SA-Math.PI*1.5;                  // 315° — end angle (going counter-clockwise)
   gCtx.clearRect(0,0,gW,gH);
   // Zone fills
   [{end:SA-Math.PI*0.5,col:'rgba(0,230,118,.15)'},{end:SA-Math.PI,col:'rgba(255,171,0,.15)'},{end:EA,col:'rgba(255,23,68,.15)'}].reduce((p,z)=>{
@@ -1046,16 +1065,18 @@ function updGauge(sc){
 let rChart=null;
 function initChart(){
   const ctx=document.getElementById('rc').getContext('2d');
-  rChart=new Chart(ctx,{type:'bar',data:{labels:['Speed','Vehicle','Crash','G-Force','Maneuver'],datasets:[{data:[0,50,0,0,0],backgroundColor:Array(5).fill('#00e67640'),borderColor:Array(5).fill('#00e676'),borderWidth:1,borderRadius:3,barThickness:12}]},
+  rChart=new Chart(ctx,{type:'bar',data:{labels:['Speed','Vehicle','Crash','G-Force','Maneuver'],datasets:[{data:[2,50,2,2,2],backgroundColor:Array(5).fill('#00e67640'),borderColor:Array(5).fill('#00e676'),borderWidth:1,borderRadius:3,barThickness:12}]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},
     scales:{x:{min:0,max:100,grid:{color:'#1a1a2e'},ticks:{color:'#505880',font:{family:"'Share Tech Mono'",size:10}}},y:{grid:{display:false},ticks:{color:'#8890b0',font:{family:"'Share Tech Mono'",size:11}}}},animation:{duration:250}}});
 }
 function updChart(){
   if(!rChart)return;
   const vals=[ST.scores.s,ST.scores.v,ST.scores.c,ST.scores.g,ST.scores.m];
-  rChart.data.datasets[0].data=vals;
-  rChart.data.datasets[0].backgroundColor=vals.map(v=>scoreCol(v)+'55');
-  rChart.data.datasets[0].borderColor=vals.map(v=>scoreCol(v));
+  // Show a minimum of 2 so zero bars are still visible on the chart
+  const display=vals.map(v=>v<1?2:v);
+  rChart.data.datasets[0].data=display;
+  rChart.data.datasets[0].backgroundColor=vals.map(v=>scoreCol(v>0?v:0)+'55');
+  rChart.data.datasets[0].borderColor=vals.map(v=>scoreCol(v>0?v:0));
   rChart.update('none');
 }
 
