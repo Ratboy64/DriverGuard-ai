@@ -1,6 +1,6 @@
 {
-  "name": "DriveGuard AI",
-  "short_name": "DriveGuard",
+  "name": "DriverGuard AI",
+  "short_name": "DriverGuard",
   "description": "Real-time crash risk monitor powered by Claude AI",
   "start_url": ".",
   "display": "standalone",

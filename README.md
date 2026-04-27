@@ -1,4 +1,4 @@
-# DriveGuard AI 🛡️
+# DriverGuard AI 🛡️
 
 **Real-time crash risk monitor powered by Claude AI**
 
@@ -38,7 +38,7 @@ Once your GitHub Pages URL is live:
 1. Open the URL in **Safari** on your iPhone
 2. Tap the **Share** button (box with arrow up)
 3. Scroll down and tap **"Add to Home Screen"**
-4. Tap **Add** — DriveGuard AI now launches like a native app
+4. Tap **Add** — DriverGuard AI now launches like a native app
 
 > ⚠️ Motion sensor access on iOS 13+ requires a user gesture inside Safari. Use the "Enable Motion Sensors" button in the setup wizard.
 
@@ -80,7 +80,7 @@ The app uses `claude-haiku-4-5` for efficient real-time coaching. Haiku is the f
 
 ```
 To: {{to_email}}
-Subject: DriveGuard AI Alert — {{trigger_type}}
+Subject: DriverGuard AI Alert — {{trigger_type}}
 
 Vehicle: {{vehicle}}
 Risk Score: {{risk_score}}
@@ -126,7 +126,7 @@ Enable in **⚙ TUNE → Demo/Simulation** to test the app without driving. Set 
 ## File Structure
 
 ```
-driveguard-ai/
+driverguard-ai/
 ├── index.html       ← The entire app (single file)
 ├── manifest.json    ← PWA manifest for "Add to Home Screen"
 ├── icon-192.png     ← App icon (192×192)

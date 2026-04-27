@@ -1,0 +1,10 @@
+# Normalize line endings — prevents Git CRLF warnings on Windows
+* text=auto eol=lf
+*.html text eol=lf
+*.js   text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.css  text eol=lf
+*.png  binary
+*.jpg  binary
+*.ico  binary

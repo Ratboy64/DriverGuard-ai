@@ -6,12 +6,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="DriveGuard AI">
+<meta name="apple-mobile-web-app-title" content="DriverGuard AI">
 <meta name="theme-color" content="#080812">
 <meta name="description" content="Real-time crash risk monitor powered by Claude AI">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>DriveGuard AI</title>
+<title>DriverGuard AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -71,33 +71,32 @@ textarea{resize:vertical;min-height:70px;line-height:1.5}
 .hbtn{background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--fmono);font-size:.7rem;padding:5px 10px;border-radius:6px;cursor:pointer;letter-spacing:1px}
 .dsplit{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 
-/* Gauge */
-.gpanel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 6px 2px;background:var(--panel);border-bottom:2px solid var(--border);position:relative;min-height:0}
-.gwrap{position:relative;width:100%;max-width:280px}
+/* Gauge — compact, fixed height */
+.gpanel{flex-shrink:0;height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 6px 4px;background:var(--panel);border-bottom:2px solid var(--border);position:relative}
+.gwrap{position:relative;width:100%;max-width:260px}
 #gc{width:100%;display:block}
-.govl{position:absolute;bottom:12%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;white-space:nowrap}
-.gscore{font-family:var(--fhud);font-size:2.6rem;font-weight:900;line-height:1;transition:color .5s}
-.glbl{font-family:var(--fmono);font-size:.68rem;letter-spacing:3px;color:var(--dim);margin-top:2px}
-.gstats{display:flex;gap:14px;margin-top:4px}
+.govl{position:absolute;bottom:10%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;white-space:nowrap}
+.gscore{font-family:var(--fhud);font-size:2.8rem;font-weight:900;line-height:1;transition:color .5s}
+.glbl{font-family:var(--fmono);font-size:.7rem;letter-spacing:3px;color:var(--dim);margin-top:2px}
+.gstats{display:flex;gap:18px;margin-top:6px}
 .gst{text-align:center}
-.gstv{font-family:var(--fhud);font-size:1.05rem;font-weight:700;color:var(--accent)}
-.gstl{font-family:var(--fmono);font-size:.6rem;color:var(--dim);letter-spacing:2px}
+.gstv{font-family:var(--fhud);font-size:1rem;font-weight:700;color:var(--accent)}
+.gstl{font-family:var(--fmono);font-size:.58rem;color:var(--dim);letter-spacing:2px}
 .gpulse{position:absolute;inset:0;pointer-events:none;opacity:0}
 .gpulse.active{animation:ppulse 1.6s ease-in-out infinite}
 @keyframes ppulse{0%,100%{background:transparent}50%{background:rgba(255,23,68,.07)}}
 
-/* AI Coach strip */
-.aistrip{flex-shrink:0;background:linear-gradient(135deg,#0d0d20,#110d1e);border-bottom:1px solid #2a1850;padding:6px 12px;display:flex;align-items:flex-start;gap:8px;min-height:44px;max-height:72px;overflow:hidden;cursor:pointer;transition:max-height .3s}
-.aistrip.expanded{max-height:200px}
-.aiicon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
-.aitext{font-family:var(--fmono);font-size:.78rem;color:#c8b4f8;line-height:1.6;flex:1}
+/* AI Coach strip — prominent, scrollable */
+.aistrip{flex:1;background:linear-gradient(135deg,#0d0d20,#110d1e);border-bottom:1px solid #2a1850;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;overflow-y:auto;-webkit-overflow-scrolling:touch;cursor:pointer;min-height:0}
+.aiicon{font-size:1.4rem;flex-shrink:0;margin-top:2px}
+.aitext{font-family:var(--fmono);font-size:1rem;color:#d4c0ff;line-height:1.7;flex:1}
 .aithink{display:inline-block;animation:blink .9s step-end infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.aiask{background:none;border:1px solid #3a1a6a;border-radius:6px;padding:4px 10px;color:var(--ai);font-family:var(--fmono);font-size:.7rem;cursor:pointer;flex-shrink:0;align-self:flex-start}
+.aiask{background:linear-gradient(135deg,var(--ai),#6020bb);border:none;border-radius:8px;padding:7px 14px;color:#fff;font-family:var(--fmono);font-size:.75rem;font-weight:700;cursor:pointer;flex-shrink:0;align-self:flex-start;letter-spacing:1px}
 
-/* Chart */
-.cpanel{flex:1;padding:8px 12px 4px;background:var(--bg);overflow:hidden;min-height:0;display:flex;flex-direction:column}
-.cptitle{font-family:var(--fmono);font-size:.68rem;letter-spacing:3px;color:var(--dim);margin-bottom:5px}
+/* Chart — compact fixed height */
+.cpanel{flex-shrink:0;height:140px;padding:8px 12px 4px;background:var(--bg);display:flex;flex-direction:column}
+.cptitle{font-family:var(--fmono);font-size:.62rem;letter-spacing:3px;color:var(--dim);margin-bottom:4px}
 .cwrap{flex:1;position:relative;min-height:0}
 
 /* Status bar */
@@ -189,7 +188,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
 
 <!-- ═══════════════ WIZARD ══════════════════════════ -->
 <div id="sw" class="screen active">
-  <div class="wlogo">DRIVEGUARD</div>
+  <div class="wlogo">DRIVERGUARD</div>
   <div class="wai">✦ POWERED BY CLAUDE AI ✦</div>
   <div class="wtag">REAL-TIME CRASH RISK MONITOR</div>
   <div class="wcard">
@@ -231,17 +230,17 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
         <span class="fl">ANTHROPIC API KEY</span>
         <input type="password" id="wapikey" placeholder="sk-ant-...">
       </div>
-      <div class="itext" style="margin-top:8px">Get your key free at <strong style="color:var(--accent)">console.anthropic.com</strong>. The AI coach is optional — DriveGuard works without it.</div>
+      <div class="itext" style="margin-top:8px">Get your key free at <strong style="color:var(--accent)">console.anthropic.com</strong>. The AI coach is optional — DriverGuard works without it.</div>
       <button class="btn bai" onclick="wn(4)">NEXT →</button>
       <button class="btn bs" onclick="wn(4,true)">Skip AI (basic mode)</button>
     </div>
 
     <div class="wstep" id="ws5">
-      <div class="itext">DriveGuard needs GPS and motion sensor access to monitor your drive.</div>
+      <div class="itext">DriverGuard needs GPS and motion sensor access to monitor your drive.</div>
       <button class="btn bp" id="bgps" onclick="reqGPS()" style="margin-bottom:9px">📍 Enable GPS Location</button>
       <button class="btn bp" id="bmot" onclick="reqMotion()" style="margin-bottom:9px">📡 Enable Motion Sensors</button>
       <div class="itext" style="margin-top:5px">iOS 13+ requires the motion button tap. Android grants automatically.</div>
-      <button class="btn bp" onclick="wfinish()">LAUNCH DRIVEGUARD →</button>
+      <button class="btn bp" onclick="wfinish()">LAUNCH DRIVERGUARD →</button>
     </div>
 
     <div class="sdots">
@@ -255,7 +254,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
 <div id="sm" class="screen">
   <div class="hbar">
     <div>
-      <div class="hlogo">DRIVEGUARD <span style="font-size:.55rem;color:var(--ai);letter-spacing:2px;-webkit-text-fill-color:var(--ai)">AI</span></div>
+      <div class="hlogo">DRIVERGUARD <span style="font-size:.55rem;color:var(--ai);letter-spacing:2px;-webkit-text-fill-color:var(--ai)">AI</span></div>
       <div id="vdisp" class="vtag">No vehicle set</div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
@@ -286,11 +285,11 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
       </div>
     </div>
 
-    <!-- AI Coach strip -->
-    <div class="aistrip" id="aistrip" onclick="aiStripToggle()">
+    <!-- AI Coach strip — prominent scrollable panel -->
+    <div class="aistrip" id="aistrip">
       <span class="aiicon">🤖</span>
       <div class="aitext" id="aistrip-text"><span class="aithink">▋</span></div>
-      <button class="aiask" onclick="event.stopPropagation();show('sai')">CHAT</button>
+      <button class="aiask" onclick="show('sai')">CHAT</button>
     </div>
 
     <div class="cpanel">
@@ -334,7 +333,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
   <div class="aichat" id="aichat">
     <div class="msg ai">
       <span class="micon">🤖</span>
-      <div class="mbubble">Hello! I'm your DriveGuard AI coach, powered by Claude. I have access to your real-time speed, G-force readings, risk scores, and incident history.<br><br>Ask me anything about your driving, or tap a quick question above to get started.</div>
+      <div class="mbubble">Hello! I'm your DriverGuard AI coach, powered by Claude. I have access to your real-time speed, G-force readings, risk scores, and incident history.<br><br>Ask me anything about your driving, or tap a quick question above to get started.</div>
     </div>
   </div>
 
@@ -434,6 +433,26 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
     </div>
 
     <div class="tsec">
+      <div class="tsectl" style="color:var(--safe)">📡 SENSOR PERMISSIONS</div>
+      <div class="itext" style="margin-bottom:10px">Current status of GPS and motion sensor access. Tap a button to re-request if denied or lost.</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 13px">
+        <div>
+          <div style="font-family:var(--fmono);font-size:.78rem;color:var(--text)">📍 GPS / Location</div>
+          <div id="gps-status" style="font-family:var(--fmono);font-size:.68rem;color:var(--dim);margin-top:2px">Checking...</div>
+        </div>
+        <button class="hbtn" onclick="tuneReqGPS()" style="padding:7px 12px;font-size:.72rem">REQUEST</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 13px">
+        <div>
+          <div style="font-family:var(--fmono);font-size:.78rem;color:var(--text)">📳 Motion &amp; Accelerometer</div>
+          <div id="mot-status" style="font-family:var(--fmono);font-size:.68rem;color:var(--dim);margin-top:2px">Checking...</div>
+        </div>
+        <button class="hbtn" onclick="tuneReqMotion()" style="padding:7px 12px;font-size:.72rem">REQUEST</button>
+      </div>
+      <div class="itext" style="color:#b06aff;margin-top:2px">⚠ On iPhone: if denied, go to <strong>Settings → Safari → Motion &amp; Orientation Access</strong> and enable it, then reload the app.</div>
+    </div>
+
+    <div class="tsec">
       <div class="tsectl">CHANGE PIN</div>
       <div class="fg"><span class="fl">NEW PIN</span><input type="password" id="tp1" maxlength="8" inputmode="numeric"></div>
       <div class="fg"><span class="fl">CONFIRM PIN</span><input type="password" id="tp2" maxlength="8" inputmode="numeric"></div>
@@ -487,7 +506,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
 
 <script>
 // ═══════════════════════════════════════════════════════════
-//  DRIVEGUARD AI — Complete Application
+//  DRIVERGUARD AI — Complete Application
 // ═══════════════════════════════════════════════════════════
 
 const ST = {
@@ -534,7 +553,7 @@ function getDrivingContext(){
   };
 }
 
-const SYSTEM_PROMPT=`You are DriveGuard AI, an expert driving safety coach embedded in a real-time crash risk monitoring app. You have access to live telemetry from the driver's vehicle. Be concise, direct, and safety-focused. Never be preachy — give concrete, actionable advice. For the dashboard strip, keep responses under 2 sentences. For chat, be more detailed but never exceed 4 paragraphs. For parent alert emails, write them in a calm, informative tone — factual, not alarming. You understand that higher risk scores (65+) require immediate attention while moderate scores (40-65) warrant caution.`;
+const SYSTEM_PROMPT=`You are DriverGuard AI, an expert driving safety coach embedded in a real-time crash risk monitoring app. You have access to live telemetry from the driver's vehicle. Be concise, direct, and safety-focused. Never be preachy — give concrete, actionable advice. For the dashboard strip, keep responses under 2 sentences. For chat, be more detailed but never exceed 4 paragraphs. For parent alert emails, write them in a calm, informative tone — factual, not alarming. You understand that higher risk scores (65+) require immediate attention while moderate scores (40-65) warrant caution.`;
 
 async function callClaude(userMsg, contextData, maxTok=300){
   if(!ST.cfg.apiKey)return null;
@@ -561,7 +580,7 @@ async function callClaude(userMsg, contextData, maxTok=300){
     });
     if(!resp.ok){
       const err=await resp.json().catch(()=>({}));
-      console.error('DriveGuard AI error:',resp.status,err?.error?.message||'');
+      console.error('DriverGuard AI error:',resp.status,err?.error?.message||'');
       return null;
     }
     const data=await resp.json();
@@ -572,7 +591,7 @@ async function callClaude(userMsg, contextData, maxTok=300){
       if(chatHistory.length>20)chatHistory.splice(0,2); // trim oldest
     }
     return text;
-  }catch(e){console.error('DriveGuard AI fetch error:',e);return null;}
+  }catch(e){console.error('DriverGuard AI fetch error:',e);return null;}
 }
 
 // Periodic AI strip update
@@ -583,13 +602,14 @@ async function runAICoach(){
   ST.aiRunning=true;ST.lastAI=now;
   const strip=document.getElementById('aistrip-text');
   strip.innerHTML='<span class="aithink">▋</span>';
+  const ctx=buildCtx();
   const prompt=ST.comp>=65
-    ?'Give me a brief, urgent safety assessment of my current driving in one sentence.'
+    ?'Give 2-3 sentences of urgent, specific safety feedback based on the live telemetry. Reference the actual numbers and tell me exactly what to do right now.'
     :ST.comp>=40
-    ?'Give me a brief coaching tip about my current driving in one sentence.'
-    :'Give me a one-sentence positive observation or proactive tip about my current driving.';
-  const r=await callClaude(prompt,null,120);
-  strip.textContent=r||'Monitoring your drive...';
+    ?'Give 2-3 sentences of coaching feedback based on the live telemetry. Reference specific readings and suggest one concrete improvement.'
+    :'Give 2-3 sentences of positive, specific feedback on my current driving. Reference the actual sensor numbers and explain why my inputs are good.';
+  const r=await callClaude(prompt,ctx,150);
+  strip.textContent=r||'Monitoring your drive. Tap CHAT to ask your AI coach anything.';
   ST.aiRunning=false;
 }
 
@@ -635,16 +655,13 @@ function addChatMsg(role,html,ret=false){
   chat.appendChild(div);chat.scrollTop=chat.scrollHeight;
   return ret?bub:null;
 }
-function aiStripToggle(){
-  document.getElementById('aistrip').classList.toggle('expanded');
-}
 async function testAI(){
   const key=document.getElementById('tapikey').value.trim();
   const r=document.getElementById('aires');
   if(!key){r.textContent='Enter an API key first.';r.style.color='var(--danger)';return;}
   r.textContent='Testing...';r.style.color='var(--dim)';
   const orig=ST.cfg.apiKey;ST.cfg.apiKey=key;
-  const res=await callClaude('Say "DriveGuard AI connected!" in exactly 4 words.',null,20);
+  const res=await callClaude('Say "DriverGuard AI connected!" in exactly 4 words.',null,20);
   ST.cfg.apiKey=orig;
   if(res){r.textContent='✓ '+res;r.style.color='var(--safe)';}
   else{r.textContent='Connection failed. Verify API key.';r.style.color='var(--danger)';}
@@ -730,54 +747,129 @@ function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.re
 function openTuning(){openPIN(()=>{fillTuning();show('st')})}
 
 // ─── GPS / Motion ─────────────────────────────────────────
+// ─── Permission banner ────────────────────────────────────
+function showPermBanner(msg,state){
+  let b=document.getElementById('perm-banner');
+  if(!b){
+    b=document.createElement('div');b.id='perm-banner';
+    b.style.cssText='position:fixed;top:env(safe-area-inset-top,44px);left:0;right:0;z-index:9999;'+
+      'padding:9px 14px;font-family:var(--fmono);font-size:.78rem;text-align:center;'+
+      'display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:opacity .4s;';
+    b.onclick=()=>ensurePermissions();
+    document.body.appendChild(b);
+  }
+  const colors={ok:['#071a0f','var(--safe)'],warn:['#1a1200','var(--warn)'],err:['#1a0505','var(--danger)']};
+  const [bg,fg]=colors[state]||colors.warn;
+  b.style.background=bg;b.style.color=fg;b.style.opacity='1';b.style.display='flex';
+  b.textContent=msg+(state!=='ok'?'  (tap to retry)':'');
+  if(state==='ok')setTimeout(()=>{b.style.opacity='0';setTimeout(()=>b.style.display='none',400);},3000);
+}
+
+// ─── GPS ─────────────────────────────────────────────────
 function startGPS(){
-  if(!navigator.geolocation)return;
+  if(!navigator.geolocation){showPermBanner('❌ GPS not available on this device','err');return;}
+  if(ST.gpsWid!=null){navigator.geolocation.clearWatch(ST.gpsWid);ST.gpsWid=null;}
   ST.gpsWid=navigator.geolocation.watchPosition(
-    p=>{document.getElementById('gdot').classList.add('on');
-        if(!ST.cfg.demo)ST.spd=Math.round((p.coords.speed||0)*2.237);},
-    ()=>document.getElementById('gdot').classList.remove('on'),
-    {enableHighAccuracy:true,maximumAge:800}
+    p=>{
+      document.getElementById('gdot').classList.add('on');
+      ST.gpsOn=true;
+      if(!ST.cfg.demo)ST.spd=Math.round((p.coords.speed||0)*2.237);
+    },
+    e=>{
+      document.getElementById('gdot').classList.remove('on');
+      if(e.code===1)showPermBanner('❌ GPS permission denied — tap to re-enable','err');
+    },
+    {enableHighAccuracy:true,maximumAge:800,timeout:10000}
   );
 }
-function reqGPS(){navigator.geolocation.getCurrentPosition(()=>{document.getElementById('bgps').textContent='✅ GPS Enabled';startGPS();},()=>{document.getElementById('bgps').textContent='❌ GPS Denied';})}
-function reqMotion(){
-  if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
-    DeviceMotionEvent.requestPermission().then(r=>{
-      if(r==='granted'){document.getElementById('bmot').textContent='✅ Motion Enabled';startMotion();}
-      else document.getElementById('bmot').textContent='❌ Motion Denied';
-    }).catch(()=>{document.getElementById('bmot').textContent='❌ Motion Error';});
-  }else{document.getElementById('bmot').textContent='✅ Motion Enabled';startMotion();}
+function reqGPS(){
+  if(!navigator.geolocation){showPermBanner('❌ GPS not supported','err');return;}
+  navigator.geolocation.getCurrentPosition(
+    ()=>{if(document.getElementById('bgps'))document.getElementById('bgps').textContent='✅ GPS Enabled';startGPS();},
+    ()=>{if(document.getElementById('bgps'))document.getElementById('bgps').textContent='❌ GPS Denied';}
+  );
 }
-// Low-pass filter state — tracks gravity estimate on each axis
+
+// ─── Motion ───────────────────────────────────────────────
 const _grav={x:0,y:0,z:0,init:false};
-const LP=0.85; // smoothing: higher = slower gravity tracking
-
+const LP=0.85;
+let _motionHandlerAttached=false;
+function _motionHandler(e){
+  let ax,ay,az;
+  const la=e.acceleration;
+  if(la&&(la.x!==null||la.y!==null||la.z!==null)){
+    ax=la.x||0;ay=la.y||0;az=la.z||0;
+  }else{
+    const ag=e.accelerationIncludingGravity;if(!ag)return;
+    const rx=ag.x||0,ry=ag.y||0,rz=ag.z||0;
+    if(!_grav.init){_grav.x=rx;_grav.y=ry;_grav.z=rz;_grav.init=true;}
+    _grav.x=LP*_grav.x+(1-LP)*rx;_grav.y=LP*_grav.y+(1-LP)*ry;_grav.z=LP*_grav.z+(1-LP)*rz;
+    ax=rx-_grav.x;ay=ry-_grav.y;az=rz-_grav.z;
+  }
+  ST.gLat=Math.abs(ax/9.81);ST.gLon=ay/9.81;ST.gVert=Math.abs(az/9.81);
+  const c=Math.sqrt(ST.gLat*ST.gLat+ST.gLon*ST.gLon);if(c>ST.gPeak)ST.gPeak=c;
+}
 function startMotion(){
-  window.addEventListener('devicemotion',e=>{
-    let ax,ay,az;
+  if(typeof DeviceMotionEvent==='undefined'){showPermBanner('⚠️ Accelerometer not available','warn');return;}
+  if(typeof DeviceMotionEvent.requestPermission==='function'){
+    DeviceMotionEvent.requestPermission().then(r=>{
+      if(r==='granted'){
+        if(!_motionHandlerAttached){window.addEventListener('devicemotion',_motionHandler);_motionHandlerAttached=true;}
+        if(document.getElementById('bmot'))document.getElementById('bmot').textContent='✅ Motion Enabled';
+      }else{
+        showPermBanner('❌ Motion denied — Settings > Safari > Motion & Orientation Access','err');
+        if(document.getElementById('bmot'))document.getElementById('bmot').textContent='❌ Motion Denied';
+      }
+    }).catch(err=>{
+      console.warn('Motion requestPermission (needs gesture):',err.message);
+      showPermBanner('⚠️ Tap here to enable motion sensors','warn');
+      const banner=document.getElementById('perm-banner');
+      if(banner)banner.onclick=()=>{banner.onclick=()=>ensurePermissions();startMotion();};
+    });
+  }else{
+    if(!_motionHandlerAttached){window.addEventListener('devicemotion',_motionHandler);_motionHandlerAttached=true;}
+    if(document.getElementById('bmot'))document.getElementById('bmot').textContent='✅ Motion Enabled';
+  }
+}
+function reqMotion(){startMotion();}
 
-    // Prefer e.acceleration — iOS CoreMotion already removes gravity
-    const la=e.acceleration;
-    if(la&&(la.x!==null||la.y!==null||la.z!==null)){
-      ax=la.x||0; ay=la.y||0; az=la.z||0;
-    } else {
-      // Fallback: high-pass filter accelerationIncludingGravity to remove gravity
-      const ag=e.accelerationIncludingGravity; if(!ag)return;
-      const rx=ag.x||0, ry=ag.y||0, rz=ag.z||0;
-      if(!_grav.init){_grav.x=rx;_grav.y=ry;_grav.z=rz;_grav.init=true;}
-      _grav.x=LP*_grav.x+(1-LP)*rx;
-      _grav.y=LP*_grav.y+(1-LP)*ry;
-      _grav.z=LP*_grav.z+(1-LP)*rz;
-      ax=rx-_grav.x; ay=ry-_grav.y; az=rz-_grav.z;
+// ─── ensurePermissions — called on every launch ───────────
+async function ensurePermissions(){
+  let gpsOk=false,motOk=false;
+  // GPS
+  if(!navigator.geolocation){showPermBanner('❌ GPS not available','err');}
+  else if(navigator.permissions){
+    try{
+      const ps=await navigator.permissions.query({name:'geolocation'});
+      if(ps.state==='granted'){startGPS();gpsOk=true;}
+      else{await new Promise(res=>{navigator.geolocation.getCurrentPosition(()=>{startGPS();gpsOk=true;res();},e=>{console.warn('GPS:',e.message);res();},{enableHighAccuracy:true,timeout:8000});});}
+      ps.onchange=()=>{if(ps.state==='granted'&&!ST.gpsOn)startGPS();};
+    }catch(e){startGPS();gpsOk=true;}
+  }else{startGPS();gpsOk=true;}
+  // Motion
+  if(typeof DeviceMotionEvent==='undefined'){showPermBanner('⚠️ Accelerometer not supported','warn');return;}
+  if(typeof DeviceMotionEvent.requestPermission==='function'){
+    try{
+      const r=await DeviceMotionEvent.requestPermission();
+      if(r==='granted'){if(!_motionHandlerAttached){window.addEventListener('devicemotion',_motionHandler);_motionHandlerAttached=true;}motOk=true;}
+      else{showPermBanner('❌ Motion denied — Settings > Safari > Motion & Orientation Access','err');return;}
+    }catch(e){
+      showPermBanner('⚠️ Tap here to enable motion sensors','warn');
+      const banner=document.getElementById('perm-banner');
+      if(banner)banner.onclick=async()=>{
+        banner.onclick=()=>ensurePermissions();
+        try{const r2=await DeviceMotionEvent.requestPermission();
+          if(r2==='granted'){if(!_motionHandlerAttached){window.addEventListener('devicemotion',_motionHandler);_motionHandlerAttached=true;}showPermBanner('✅ GPS & Motion active','ok');}
+          else showPermBanner('❌ Motion denied — Settings > Safari > Motion & Orientation Access','err');
+        }catch(e2){showPermBanner('❌ Could not request motion permission','err');}
+      };
+      return;
     }
-
-    // Convert m/s² to g  (9.81 m/s² = 1g)
-    ST.gLat  = Math.abs(ax/9.81);   // lateral  — left/right turns (always +)
-    ST.gLon  = ay/9.81;             // longitudinal — signed: negative=braking, positive=accel
-    ST.gVert = Math.abs(az/9.81);   // vertical — bumps (always +)
-    const composite=Math.sqrt(ST.gLat*ST.gLat+ST.gLon*ST.gLon);
-    if(composite>ST.gPeak)ST.gPeak=composite;
-  });
+  }else{if(!_motionHandlerAttached){window.addEventListener('devicemotion',_motionHandler);_motionHandlerAttached=true;}motOk=true;}
+  if(gpsOk&&motOk)showPermBanner('✅ GPS & Motion active','ok');
+  else if(gpsOk)showPermBanner('✅ GPS  |  ⚠️ Motion not granted','warn');
+  else if(motOk)showPermBanner('⚠️ GPS not granted  |  ✅ Motion','warn');
+  else showPermBanner('❌ GPS & Motion not granted','err');
 }
 function toggleDemo(){
   if(ST.cfg.demo){setDemo(false);alert('Demo mode OFF — using GPS');}
@@ -860,7 +952,36 @@ async function loadModels(){
   }
 }
 async function fetchStars(yr,make,model){
-  try{const r=await fetch(`https://api.nhtsa.dot.gov/SafetyRatings/modelyear/${yr}/make/${encodeURIComponent(make)}/model/${encodeURIComponent(model)}`);const d=await r.json();if(d.Results&&d.Results.length)return parseInt(d.Results[0].OverallRating)||0;}catch(e){}return 0;
+  try{
+    // NHTSA requires uppercase make; model is case-insensitive but uppercase is safest
+    const mkU  = encodeURIComponent(make.toUpperCase());
+    const moU  = encodeURIComponent(model.toUpperCase());
+    const r1   = await fetch(`https://api.nhtsa.dot.gov/SafetyRatings/modelyear/${yr}/make/${mkU}/model/${moU}`);
+    if(!r1.ok){ console.warn('NHTSA step1 HTTP',r1.status); return 0; }
+    const d1=await r1.json();
+    const results=d1.Results||[];
+    if(!results.length){ console.warn('NHTSA: no variants for',yr,make,model); return 0; }
+
+    // Try every variant until we find one with a real numeric OverallRating
+    for(const variant of results){
+      const vid=variant.VehicleId;
+      if(!vid) continue;
+      const r2=await fetch(`https://api.nhtsa.dot.gov/SafetyRatings/VehicleId/${vid}`);
+      if(!r2.ok) continue;
+      const d2=await r2.json();
+      const det=d2.Results?.[0];
+      if(!det) continue;
+      const raw=String(det.OverallRating||'').trim();
+      console.log(`NHTSA VehicleId ${vid} OverallRating="${raw}"`);
+      // Accept digits only — reject "Not Rated", "Not Applicable", empty
+      if(/^\d+$/.test(raw)){
+        const n=parseInt(raw,10);
+        return Math.min(Math.max(n,1),5);
+      }
+    }
+    console.warn('NHTSA: no rated variant found for',yr,make,model);
+  }catch(e){ console.warn('NHTSA fetchStars error:',e); }
+  return 0;
 }
 async function decodeVIN(){
   const vin=document.getElementById('tvin').value.trim().toUpperCase();
@@ -925,9 +1046,9 @@ function updGauge(sc){
 let rChart=null;
 function initChart(){
   const ctx=document.getElementById('rc').getContext('2d');
-  rChart=new Chart(ctx,{type:'bar',data:{labels:['Speed','Vehicle','Crash','G-Force','Maneuver'],datasets:[{data:[0,50,0,0,0],backgroundColor:Array(5).fill('#00e67640'),borderColor:Array(5).fill('#00e676'),borderWidth:1,borderRadius:3}]},
+  rChart=new Chart(ctx,{type:'bar',data:{labels:['Speed','Vehicle','Crash','G-Force','Maneuver'],datasets:[{data:[0,50,0,0,0],backgroundColor:Array(5).fill('#00e67640'),borderColor:Array(5).fill('#00e676'),borderWidth:1,borderRadius:3,barThickness:12}]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},
-    scales:{x:{min:0,max:100,grid:{color:'#1a1a2e'},ticks:{color:'#505880',font:{family:"'Share Tech Mono'",size:11}}},y:{grid:{display:false},ticks:{color:'#8890b0',font:{family:"'Share Tech Mono'",size:12}}}},animation:{duration:250}}});
+    scales:{x:{min:0,max:100,grid:{color:'#1a1a2e'},ticks:{color:'#505880',font:{family:"'Share Tech Mono'",size:10}}},y:{grid:{display:false},ticks:{color:'#8890b0',font:{family:"'Share Tech Mono'",size:11}}}},animation:{duration:250}}});
 }
 function updChart(){
   if(!rChart)return;
@@ -1024,7 +1145,7 @@ function exportCSV(){
   const h='Timestamp,Speed_MPH,Lat_G,Lon_G,Risk_Score,Trigger,Vehicle,AI_Summary';
   const rows=ST.incidents.map(i=>`${i.ts},${i.spd},${i.gLat},${i.gLon},${i.comp},${i.type},"${i.veh||''}","${(i.aiSummary||'').replace(/"/g,"'")}"`);
   const blob=new Blob([[h,...rows].join('\n')],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`DriveGuard_${new Date().toISOString().split('T')[0]}.csv`;a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`DriverGuard_${new Date().toISOString().split('T')[0]}.csv`;a.click();
 }
 
 // ─── EmailJS ─────────────────────────────────────────────
@@ -1045,12 +1166,49 @@ async function testEmail(){
   const r=document.getElementById('eres');
   if(!s||!t||!k||!e){r.textContent='Fill in all email fields first.';r.style.color='var(--danger)';return;}
   r.textContent='Sending...';r.style.color='var(--dim)';
-  try{emailjs.init(k);await emailjs.send(s,t,{to_email:e,trigger_type:'TEST',trigger_val:'Test Alert',risk_score:'42',speed:'55',lat_g:'0.21',ai_analysis:'This is a test of the DriveGuard AI parent alert system.',vehicle:([ST.veh.year,ST.veh.make,ST.veh.model].filter(Boolean).join(' '))||'Test Vehicle',session_incidents:'0',timestamp:new Date().toLocaleString()});
+  try{emailjs.init(k);await emailjs.send(s,t,{to_email:e,trigger_type:'TEST',trigger_val:'Test Alert',risk_score:'42',speed:'55',lat_g:'0.21',ai_analysis:'This is a test of the DriverGuard AI parent alert system.',vehicle:([ST.veh.year,ST.veh.make,ST.veh.model].filter(Boolean).join(' '))||'Test Vehicle',session_incidents:'0',timestamp:new Date().toLocaleString()});
     r.textContent='✓ Test email sent!';r.style.color='var(--safe)';}
   catch(ex){r.textContent='Failed: '+(ex.text||ex.message||'Check credentials');r.style.color='var(--danger)';}
 }
 
-// ─── Tuning ───────────────────────────────────────────────
+// ─── Tuning permissions ──────────────────────────────────
+function checkPermStatus(){
+  // GPS
+  if(navigator.permissions){
+    navigator.permissions.query({name:'geolocation'}).then(r=>{
+      const el=document.getElementById('gps-status');if(!el)return;
+      const map={granted:'✅ Granted — GPS active',denied:'❌ Denied — use Settings to re-enable',prompt:'⚪ Not yet requested'};
+      el.textContent=map[r.state]||r.state;
+      el.style.color=r.state==='granted'?'var(--safe)':r.state==='denied'?'var(--danger)':'var(--dim)';
+    }).catch(()=>{const el=document.getElementById('gps-status');if(el){el.textContent=ST.gpsOn?'✅ Active':'⚪ Status unknown';el.style.color=ST.gpsOn?'var(--safe)':'var(--dim)';}});
+  }else{const el=document.getElementById('gps-status');if(el){el.textContent=ST.gpsOn?'✅ Active':'⚪ Not checked';el.style.color=ST.gpsOn?'var(--safe)':'var(--dim)';}}
+  // Motion — iOS doesn't expose via Permissions API; show based on live readings
+  const el2=document.getElementById('mot-status');if(!el2)return;
+  const hasMotion=(ST.gLat>0||ST.gLon!==0||ST.gVert>0);
+  if(typeof DeviceMotionEvent==='undefined'){el2.textContent='❌ Not supported on this device';el2.style.color='var(--danger)';}
+  else if(hasMotion){el2.textContent='✅ Active — receiving sensor data';el2.style.color='var(--safe)';}
+  else{el2.textContent='⚪ Awaiting data — tap REQUEST to grant access';el2.style.color='var(--dim)';}
+}
+function tuneReqGPS(){
+  const el=document.getElementById('gps-status');
+  if(el){el.textContent='Requesting...';el.style.color='var(--dim)';}
+  navigator.geolocation.getCurrentPosition(
+    ()=>{ST.gpsOn=true;startGPS();if(el){el.textContent='✅ Granted — GPS active';el.style.color='var(--safe)';}},
+    ()=>{if(el){el.textContent='❌ Denied — check Settings → Safari → Location';el.style.color='var(--danger)';}}
+  );
+}
+function tuneReqMotion(){
+  const el=document.getElementById('mot-status');
+  if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
+    DeviceMotionEvent.requestPermission().then(r=>{
+      if(r==='granted'){startMotion();if(el){el.textContent='✅ Granted — motion active';el.style.color='var(--safe)';}}
+      else{if(el){el.textContent='❌ Denied — check Settings → Safari → Motion Access';el.style.color='var(--danger)';}}
+    }).catch(()=>{if(el){el.textContent='❌ Error requesting permission';el.style.color='var(--danger)';}});
+  }else{
+    startMotion();
+    if(el){el.textContent='✅ No permission needed — motion enabled';el.style.color='var(--safe)';}
+  }
+}
 function fillTuning(){
   const w=ST.cfg.w,t=ST.cfg.thr;
   ['s','v','c','g','m'].forEach(k=>{document.getElementById('ws-'+k).value=w[k];document.getElementById('wv-'+k).textContent=w[k]+'%';});
@@ -1065,6 +1223,7 @@ function fillTuning(){
   document.getElementById('taiint').value=ST.cfg.aiInterval;
   document.getElementById('dmode').textContent=ST.cfg.demo?'⚡ Demo active':'GPS/motion mode active';
   document.getElementById('vilog').textContent=`View Log (${ST.incidents.length} incidents)`;
+  checkPermStatus();
   // Pre-select current vehicle
   if(ST.veh.year)document.getElementById('tyr').value=ST.veh.year;
   document.getElementById('vres').textContent='';
@@ -1134,7 +1293,7 @@ async function wn(step,skip){
     gotoStep(5);
   }
 }
-function wfinish(){saveCfg();initEJS();updVehicleDisplay();show('sm');startGPS();startMotion();}
+function wfinish(){saveCfg();initEJS();updVehicleDisplay();show('sm');ensurePermissions();}
 function updVehicleDisplay(){
   const s=[ST.veh.year,ST.veh.make,ST.veh.model].filter(Boolean).join(' ')||'No vehicle set';
   document.getElementById('vdisp').textContent=s+(ST.veh.stars?'  ★'.repeat(Math.min(ST.veh.stars,5)):'');
@@ -1192,12 +1351,12 @@ async function saveVehicle(){
 function init(){
   popYears();loadMakes();loadTuningMakes();
   if(isFirst()){show('sw');}
-  else{loadCfg();updVehicleDisplay();initEJS();show('sm');startGPS();startMotion();}
+  else{loadCfg();updVehicleDisplay();initEJS();show('sm');ensurePermissions();}
   initGauge();initChart();setInterval(updUI,500);
   // Initial AI greeting after 2s
   setTimeout(()=>{
     if(ST.cfg.apiKey&&document.getElementById('sm').classList.contains('active')){
-      callClaude('Give a one-sentence welcome message to a driver who just started DriveGuard.',null,60).then(r=>{if(r)document.getElementById('aistrip-text').textContent=r;});
+      callClaude('Give a one-sentence welcome message to a driver who just started DriverGuard.',null,60).then(r=>{if(r)document.getElementById('aistrip-text').textContent=r;});
     }else if(!ST.cfg.apiKey){document.getElementById('aistrip-text').textContent='Add API key in ⚙ TUNE for AI coaching.';}
   },2000);
 }
