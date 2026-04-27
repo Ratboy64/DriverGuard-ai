@@ -491,7 +491,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
 // ═══════════════════════════════════════════════════════════
 
 const ST = {
-  spd:0, gLat:0, gLon:0, gVert:1, gPeak:0,
+  spd:0, gLat:0, gLon:0, gVert:0, gPeak:0,
   scores:{s:0,v:50,c:0,g:0,m:0}, comp:0,
   veh:{year:'',make:'',model:'',stars:0,cls:'sedan',vin:''},
   cfg:{
@@ -748,11 +748,35 @@ function reqMotion(){
     }).catch(()=>{document.getElementById('bmot').textContent='❌ Motion Error';});
   }else{document.getElementById('bmot').textContent='✅ Motion Enabled';startMotion();}
 }
+// Low-pass filter state — tracks gravity estimate on each axis
+const _grav={x:0,y:0,z:0,init:false};
+const LP=0.85; // smoothing: higher = slower gravity tracking
+
 function startMotion(){
   window.addEventListener('devicemotion',e=>{
-    const a=e.accelerationIncludingGravity;if(!a)return;
-    ST.gLat=Math.abs((a.x||0)/9.81);ST.gLon=(a.y||0)/9.81;ST.gVert=Math.abs((a.z||0)/9.81);
-    const c=Math.sqrt(ST.gLat*ST.gLat+ST.gLon*ST.gLon);if(c>ST.gPeak)ST.gPeak=c;
+    let ax,ay,az;
+
+    // Prefer e.acceleration — iOS CoreMotion already removes gravity
+    const la=e.acceleration;
+    if(la&&(la.x!==null||la.y!==null||la.z!==null)){
+      ax=la.x||0; ay=la.y||0; az=la.z||0;
+    } else {
+      // Fallback: high-pass filter accelerationIncludingGravity to remove gravity
+      const ag=e.accelerationIncludingGravity; if(!ag)return;
+      const rx=ag.x||0, ry=ag.y||0, rz=ag.z||0;
+      if(!_grav.init){_grav.x=rx;_grav.y=ry;_grav.z=rz;_grav.init=true;}
+      _grav.x=LP*_grav.x+(1-LP)*rx;
+      _grav.y=LP*_grav.y+(1-LP)*ry;
+      _grav.z=LP*_grav.z+(1-LP)*rz;
+      ax=rx-_grav.x; ay=ry-_grav.y; az=rz-_grav.z;
+    }
+
+    // Convert m/s² to g  (9.81 m/s² = 1g)
+    ST.gLat  = Math.abs(ax/9.81);   // lateral  — left/right turns (always +)
+    ST.gLon  = ay/9.81;             // longitudinal — signed: negative=braking, positive=accel
+    ST.gVert = Math.abs(az/9.81);   // vertical — bumps (always +)
+    const composite=Math.sqrt(ST.gLat*ST.gLat+ST.gLon*ST.gLon);
+    if(composite>ST.gPeak)ST.gPeak=composite;
   });
 }
 function toggleDemo(){
