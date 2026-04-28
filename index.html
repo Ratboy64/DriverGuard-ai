@@ -973,12 +973,13 @@ const STAR_FALLBACK={
 };
 
 async function fetchStars(yr,make,model){
-  const makeUpper=make.toUpperCase().trim();
+  const makeUpper=make.toUpperCase().trim(); // for fallback table lookup only
+  const makeOrig =make.trim();               // NHTSA uses original case e.g. "Toyota" not "TOYOTA"
   try{
-    // NHTSA requires uppercase make; keep model in original case (their API is case-sensitive on model)
-    const mkU=encodeURIComponent(makeUpper);
+    // NHTSA API is case-sensitive — use original case for both make and model
+    const mkU=encodeURIComponent(makeOrig);
     const moU=encodeURIComponent(model.trim());
-    const r1=await fetch(`https://api.nhtsa.dot.gov/SafetyRatings/modelyear/${yr}/make/${mkU}/model/${moU}`);
+    const r1=await fetch(`https://api.nhtsa.gov/SafetyRatings/modelyear/${yr}/make/${mkU}/model/${moU}`);
     if(!r1.ok){console.warn('NHTSA step1 HTTP',r1.status);}
     else{
       const d1=await r1.json();
@@ -986,7 +987,7 @@ async function fetchStars(yr,make,model){
       if(results.length){
         for(const variant of results){
           const vid=variant.VehicleId; if(!vid)continue;
-          const r2=await fetch(`https://api.nhtsa.dot.gov/SafetyRatings/VehicleId/${vid}`);
+          const r2=await fetch(`https://api.nhtsa.gov/SafetyRatings/VehicleId/${vid}`);
           if(!r2.ok)continue;
           const d2=await r2.json();
           const raw=String(d2.Results?.[0]?.OverallRating||'').trim();
