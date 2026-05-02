@@ -95,7 +95,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.5}
 .aiask{background:linear-gradient(135deg,var(--ai),#6020bb);border:none;border-radius:8px;padding:7px 14px;color:#fff;font-family:var(--fmono);font-size:.75rem;font-weight:700;cursor:pointer;flex-shrink:0;align-self:flex-start;letter-spacing:1px}
 
 /* Chart — compact fixed height */
-.cpanel{flex-shrink:0;height:140px;padding:8px 12px 4px;background:var(--bg);display:flex;flex-direction:column}
+.cpanel{flex-shrink:0;height:175px;padding:8px 12px 4px;background:var(--bg);display:flex;flex-direction:column}
 .cptitle{font-family:var(--fmono);font-size:.62rem;letter-spacing:3px;color:var(--dim);margin-bottom:4px}
 .cwrap{flex:1;position:relative;min-height:0}
 
@@ -1250,9 +1250,9 @@ function updGauge(sc){
 let rChart=null;
 function initChart(){
   const ctx=document.getElementById('rc').getContext('2d');
-  rChart=new Chart(ctx,{type:'bar',data:{labels:['Speed','Vehicle','Crash','G-Force','Maneuver'],datasets:[{data:[2,50,2,2,2],backgroundColor:Array(5).fill('#00e67640'),borderColor:Array(5).fill('#00e676'),borderWidth:1,borderRadius:3,barThickness:12}]},
+  rChart=new Chart(ctx,{type:'bar',data:{labels:['Speed','Vehicle','Crash','G-Force','Maneuver'],datasets:[{data:[2,50,2,2,2],backgroundColor:Array(5).fill('#00e67640'),borderColor:Array(5).fill('#00e676'),borderWidth:1,borderRadius:3,barThickness:10}]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},
-    scales:{x:{min:0,max:100,grid:{color:'#1a1a2e'},ticks:{color:'#505880',font:{family:"'Share Tech Mono'",size:10}}},y:{grid:{display:false},ticks:{color:'#8890b0',font:{family:"'Share Tech Mono'",size:11}}}},animation:{duration:250}}});
+    scales:{x:{min:0,max:100,grid:{color:'#1a1a2e'},ticks:{color:'#505880',font:{family:"'Share Tech Mono'",size:10}}},y:{grid:{display:false},ticks:{color:'#8890b0',font:{family:"'Share Tech Mono'",size:10}}}},animation:{duration:250}}});
 }
 function updChart(){
   if(!rChart)return;
