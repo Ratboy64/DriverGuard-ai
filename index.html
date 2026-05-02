@@ -182,6 +182,22 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
 
 .cs{color:var(--safe)!important}.cw{color:var(--warn)!important}.cd{color:var(--danger)!important}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ── PASSENGER BAR ───────────────────────────── */
+.pbar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:5px 12px;background:var(--panel2);border-bottom:1px solid var(--border)}
+.pbar-lbl{font-family:var(--fmono);font-size:.58rem;color:var(--dim);letter-spacing:2px;margin-bottom:3px}
+.pbtns{display:flex;gap:4px}
+.pbtn{background:var(--panel);border:1px solid var(--border);border-radius:5px;color:var(--dim);font-family:var(--fhud);font-size:.7rem;padding:4px 9px;cursor:pointer;transition:all .15s;line-height:1}
+.pbtn.active{background:rgba(255,171,0,.15);border-color:var(--warn);color:var(--warn);box-shadow:0 0 6px rgba(255,171,0,.15)}
+.pmult{font-family:var(--fmono);font-size:.58rem;color:var(--dim);text-align:right}
+.pmult.elevated{color:var(--warn)}
+
+/* ── VOICE ───────────────────────────────────── */
+.vtoggle{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-size:.68rem;font-family:var(--fmono);cursor:pointer;transition:all .2s;color:var(--dim);letter-spacing:1px}
+.vtoggle.on{border-color:var(--ai);color:var(--ai);box-shadow:0 0 6px rgba(176,106,255,.2)}
+.vspeaking{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ai);margin-left:5px;vertical-align:middle;opacity:0;flex-shrink:0;margin-top:3px}
+.vspeaking.active{animation:vpulse .7s ease-in-out infinite;opacity:1}
+@keyframes vpulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.7);opacity:.4}}
 </style>
 </head>
 <body>
@@ -285,9 +301,28 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
       </div>
     </div>
 
+    <!-- Passenger count + voice toggle bar -->
+    <div class="pbar">
+      <div>
+        <div class="pbar-lbl">PASSENGERS</div>
+        <div class="pbtns">
+          <button class="pbtn active" id="pb0" onclick="setPassengers(0)">0</button>
+          <button class="pbtn" id="pb1" onclick="setPassengers(1)">1</button>
+          <button class="pbtn" id="pb2" onclick="setPassengers(2)">2</button>
+          <button class="pbtn" id="pb3" onclick="setPassengers(3)">3</button>
+          <button class="pbtn" id="pb4" onclick="setPassengers(4)">4+</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <button class="vtoggle" id="vtoggle" onclick="toggleVoice()">🔇 VOICE</button>
+        <div class="pmult" id="pmult-hud">solo · 1.0×</div>
+      </div>
+    </div>
+
     <!-- AI Coach strip — prominent scrollable panel -->
     <div class="aistrip" id="aistrip">
       <span class="aiicon">🤖</span>
+      <span class="vspeaking" id="vspeaking"></span>
       <div class="aitext" id="aistrip-text"><span class="aithink">▋</span></div>
       <button class="aiask" onclick="show('sai')">CHAT</button>
     </div>
@@ -417,6 +452,31 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
     </div>
 
     <div class="tsec">
+      <div class="tsectl" style="color:var(--ai)">🔊 VOICE COACHING</div>
+      <div class="itext" style="margin-bottom:10px">Speaks Claude's feedback aloud — keeps your eyes on the road. Toggle also available in the main HUD. Voice is silenced at speeds below 5 MPH unless delivering an alert.</div>
+      <div class="srow"><div class="shdr"><span class="sname">Speech Rate</span><span class="sval" id="tvrate-v">1.0×</span></div><input type="range" min="8" max="13" value="10" id="tvrate" oninput="document.getElementById('tvrate-v').textContent=(this.value/10).toFixed(1)+'×'"></div>
+      <div class="srow"><div class="shdr"><span class="sname">Volume</span><span class="sval" id="tvvol-v">1.0</span></div><input type="range" min="1" max="10" value="10" id="tvvol" oninput="document.getElementById('tvvol-v').textContent=(this.value/10).toFixed(1)"></div>
+      <button class="btn bs" onclick="testVoice()" style="margin-bottom:6px">Test Voice</button>
+      <div id="vres" class="err"></div>
+    </div>
+
+    <div class="tsec">
+      <div class="tsectl" style="color:var(--warn)">👥 PASSENGER AWARENESS</div>
+      <div class="itext" style="margin-bottom:10px">CDC data: teen crash risk doubles with 1 passenger and quadruples with 2+. A multiplier is applied to the composite risk score — higher passenger count = lower threshold before alerts fire.</div>
+      <div class="srow">
+        <div class="shdr"><span class="sname">Current Passengers</span><span class="sval" id="tpass-v">0</span></div>
+        <div class="pbtns" style="margin-top:6px">
+          <button class="pbtn" id="tpb0" onclick="setPassengers(0)">0</button>
+          <button class="pbtn" id="tpb1" onclick="setPassengers(1)">1</button>
+          <button class="pbtn" id="tpb2" onclick="setPassengers(2)">2</button>
+          <button class="pbtn" id="tpb3" onclick="setPassengers(3)">3</button>
+          <button class="pbtn" id="tpb4" onclick="setPassengers(4)">4+</button>
+        </div>
+      </div>
+      <div class="itext" id="pmult-tune" style="margin-top:8px;color:var(--warn)"></div>
+    </div>
+
+    <div class="tsec">
       <div class="tsectl">DEMO / SIMULATION</div>
       <div class="fg"><span class="fl">SIMULATED SPEED (MPH)</span><input type="number" id="tdemo" value="0" min="0" max="150"></div>
       <div class="fg"><span class="fl">SIMULATED LATERAL G</span><input type="number" id="tdemog" value="0.0" min="0" max="2.0" step="0.1"></div>
@@ -519,12 +579,18 @@ const ST = {
     thr:{score:65,speed:75,gf:0.5},
     amode:'immediate', cooldown:15, count:3,
     email:'',ejsSvc:'',ejsTmpl:'',ejsKey:'',
-    apiKey:'', aiInterval:30
+    apiKey:'', aiInterval:30,
+    voice:{enabled:false,rate:1.0,volume:1.0},
+    passengers:0, passengerAware:true
   },
   incidents:[], sessCount:0, alertActive:false,
   lastAlert:0, lastAI:0, aiRunning:false,
-  gpsWid:null, gpsOn:false
+  gpsOn:false, gpsWid:null
 };
+
+// ─── Route tracking (Sprint 1 — data collection for Feature 2.1) ─────────
+const routeTrack=[];
+let _lastTrackTime=0;
 
 // ─── AI Coach ────────────────────────────────────────────
 const chatHistory = [];
@@ -549,7 +615,9 @@ function getDrivingContext(){
     },
     session_incidents:ST.sessCount,
     recent_incidents:ST.incidents.slice(-5).map(i=>({time:i.ts,speed:i.spd,risk:i.comp,trigger:i.type})),
-    alert_thresholds:{score:ST.cfg.thr.score,speed:ST.cfg.thr.speed,gforce:ST.cfg.thr.gf}
+    alert_thresholds:{score:ST.cfg.thr.score,speed:ST.cfg.thr.speed,gforce:ST.cfg.thr.gf},
+    passengers:ST.cfg.passengers,
+    passenger_risk_multiplier:passengerMultiplier()
   };
 }
 
@@ -609,7 +677,9 @@ async function runAICoach(){
     ?'Give 2-3 sentences of coaching feedback based on the live telemetry. Reference specific readings and suggest one concrete improvement.'
     :'Give 2-3 sentences of positive, specific feedback on my current driving. Reference the actual sensor numbers and explain why my inputs are good.';
   const r=await callClaude(prompt,ctx,150);
-  strip.textContent=r||'Monitoring your drive. Tap CHAT to ask your AI coach anything.';
+  const msg=r||'Monitoring your drive. Tap CHAT to ask your AI coach anything.';
+  strip.textContent=msg;
+  if(r)speak(r.split('.')[0].trim(),'normal');
   ST.aiRunning=false;
 }
 
@@ -644,6 +714,7 @@ async function sendAI(){
   const think=addChatMsg('ai','<span class="aithink">▋</span> Analyzing...',true);
   const r=await callClaude(msg,null,500);
   think.innerHTML=r||'Sorry, I could not process that request. Check your API key.';
+  if(r)speak(r.split('.')[0].trim(),'normal');
 }
 function sendQ(q){document.getElementById('aiinp').value=q;sendAI();}
 function addChatMsg(role,html,ret=false){
@@ -698,7 +769,8 @@ function manRisk(mph,gLat,gLon){
 function calcComp(){
   const w=ST.cfg.w,s=ST.scores,tot=w.s+w.v+w.c+w.g+w.m;
   if(!tot)return 0;
-  return Math.round((s.s*w.s+s.v*w.v+s.c*w.c+s.g*w.g+s.m*w.m)/tot);
+  const base=Math.round((s.s*w.s+s.v*w.v+s.c*w.c+s.g*w.g+s.m*w.m)/tot);
+  return Math.min(100,Math.round(base*passengerMultiplier()));
 }
 function updScores(){
   ST.scores.s=spdCurve(ST.spd);ST.scores.v=vehFactor(ST.veh.stars);
@@ -777,7 +849,22 @@ function startGPS(){
     p=>{
       document.getElementById('gdot').classList.add('on');
       ST.gpsOn=true;
-      if(!ST.cfg.demo)ST.spd=Math.round((p.coords.speed||0)*2.237);
+      if(!ST.cfg.demo){
+        ST.spd=Math.round((p.coords.speed||0)*2.237);
+        // Route track — record every 2s while moving (Feature 2.1 data collection)
+        const now=Date.now();
+        if(now-_lastTrackTime>=2000&&ST.spd>5){
+          _lastTrackTime=now;
+          routeTrack.push({
+            lat:p.coords.latitude,lon:p.coords.longitude,
+            timestamp:new Date().toISOString(),
+            speedMPH:ST.spd,riskScore:ST.comp,
+            gForce:parseFloat(Math.sqrt(ST.gLat*ST.gLat+ST.gLon*ST.gLon).toFixed(3))
+          });
+          if(routeTrack.length>1800)routeTrack.shift();
+          try{sessionStorage.setItem('dg_route_current',JSON.stringify(routeTrack.slice(-200)));}catch(e){}
+        }
+      }
     },
     e=>{
       document.getElementById('gdot').classList.remove('on');
@@ -1158,6 +1245,8 @@ async function fireAlert(type,val){
   document.getElementById('aaifb').textContent='';
   document.getElementById('oa').classList.add('active');
   beep();
+  const alertMsg=type==='RISK SCORE'?'High risk score. Reduce speed and stabilize.':type==='SPEED'?'Speed alert. Ease off the accelerator.':'G-force alert. Smooth out your driving.';
+  speak(alertMsg,'urgent');
   // AI feedback on alert card
   const aifb=await getAlertAnalysis(type,val);
   if(aifb)document.getElementById('aaifb').textContent='"'+aifb+'"';
@@ -1279,6 +1368,12 @@ function fillTuning(){
   document.getElementById('taiint').value=ST.cfg.aiInterval;
   document.getElementById('dmode').textContent=ST.cfg.demo?'⚡ Demo active':'GPS/motion mode active';
   document.getElementById('vilog').textContent=`View Log (${ST.incidents.length} incidents)`;
+  // Voice settings
+  const vr=ST.cfg.voice?.rate||1.0,vv=ST.cfg.voice?.volume||1.0;
+  if(document.getElementById('tvrate')){document.getElementById('tvrate').value=Math.round(vr*10);document.getElementById('tvrate-v').textContent=vr.toFixed(1)+'×';}
+  if(document.getElementById('tvvol')){document.getElementById('tvvol').value=Math.round(vv*10);document.getElementById('tvvol-v').textContent=vv.toFixed(1);}
+  // Passenger settings
+  setPassengers(ST.cfg.passengers||0);
   checkPermStatus();
   // Pre-select current vehicle
   if(ST.veh.year)document.getElementById('tyr').value=ST.veh.year;
@@ -1309,6 +1404,10 @@ function saveTuning(){
   ST.cfg.ejsKey=document.getElementById('tek').value.trim();
   ST.cfg.apiKey=document.getElementById('tapikey').value.trim();
   ST.cfg.aiInterval=parseInt(document.getElementById('taiint').value)||30;
+  // Voice settings
+  if(!ST.cfg.voice)ST.cfg.voice={};
+  ST.cfg.voice.rate=parseInt(document.getElementById('tvrate')?.value||10)/10;
+  ST.cfg.voice.volume=parseInt(document.getElementById('tvvol')?.value||10)/10;
   saveCfg();initEJS();show('sm');
 }
 async function changePin(){
@@ -1403,12 +1502,82 @@ async function saveVehicle(){
   res.style.color='var(--safe)';res.textContent=`✓ Vehicle updated: ${yr} ${mk} ${mo}${ST.veh.stars?' (★'+ST.veh.stars+')':''}`;
 }
 
+// ─── Voice Coaching (Feature 2.3) ────────────────────────
+function getBestVoice(){
+  if(!('speechSynthesis' in window))return null;
+  const voices=speechSynthesis.getVoices();
+  return voices.find(v=>v.lang==='en-US'&&/samantha|female|zira|karen/i.test(v.name))
+    ||voices.find(v=>v.lang==='en-US')
+    ||voices[0]||null;
+}
+function speak(text,priority='normal'){
+  if(!ST.cfg.voice.enabled)return;
+  if(!('speechSynthesis' in window))return;
+  if(ST.spd<5&&priority!=='urgent'&&priority!=='summary')return;
+  const u=new SpeechSynthesisUtterance(text);
+  const v=getBestVoice();if(v)u.voice=v;
+  u.rate=ST.cfg.voice.rate||1.0;
+  u.volume=ST.cfg.voice.volume||1.0;
+  u.pitch=1.0;
+  if(priority==='urgent')speechSynthesis.cancel();
+  const ind=document.getElementById('vspeaking');
+  if(ind){ind.classList.add('active');u.onend=()=>ind.classList.remove('active');}
+  speechSynthesis.speak(u);
+}
+function toggleVoice(){
+  ST.cfg.voice.enabled=!ST.cfg.voice.enabled;
+  const btn=document.getElementById('vtoggle');
+  if(btn){btn.classList.toggle('on',ST.cfg.voice.enabled);btn.textContent=ST.cfg.voice.enabled?'🔊 VOICE':'🔇 VOICE';}
+  saveCfg();
+}
+function testVoice(){
+  const r=document.getElementById('vres');
+  if(!('speechSynthesis' in window)){if(r){r.style.color='var(--danger)';r.textContent='❌ Web Speech API not supported on this device.';}return;}
+  const orig=ST.cfg.voice.enabled;ST.cfg.voice.enabled=true;
+  speak('DriverGuard voice coaching is active. Drive safe.','summary');
+  ST.cfg.voice.enabled=orig;
+  if(r){r.style.color='var(--safe)';r.textContent='✓ Voice test played.';}
+}
+function initVoice(){
+  if(!('speechSynthesis' in window))return;
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+  const btn=document.getElementById('vtoggle');
+  if(btn){btn.classList.toggle('on',ST.cfg.voice.enabled);btn.textContent=ST.cfg.voice.enabled?'🔊 VOICE':'🔇 VOICE';}
+}
+
+// ─── Passenger Awareness (Feature 2.4) ───────────────────
+const PASS_MULT=[1.0,1.1,1.2,1.35,1.5];
+const PASS_LABELS=['solo · 1.0×','1 pax · 1.1×','2 pax · 1.2×','3 pax · 1.35×','4+ pax · 1.5×'];
+function passengerMultiplier(){
+  if(!ST.cfg.passengerAware)return 1.0;
+  return PASS_MULT[Math.min(ST.cfg.passengers||0,4)];
+}
+function setPassengers(n){
+  ST.cfg.passengers=n;
+  for(let i=0;i<=4;i++){
+    const b=document.getElementById('pb'+i);if(b)b.classList.toggle('active',i===n);
+    const tb=document.getElementById('tpb'+i);if(tb)tb.classList.toggle('active',i===n);
+  }
+  const hudLbl=document.getElementById('pmult-hud');
+  if(hudLbl){hudLbl.textContent=PASS_LABELS[Math.min(n,4)];hudLbl.className='pmult'+(n>0?' elevated':'');}
+  const tv=document.getElementById('tpass-v');if(tv)tv.textContent=n>=4?'4+':n;
+  const td=document.getElementById('pmult-tune');
+  if(td){
+    const mult=PASS_MULT[Math.min(n,4)];
+    td.textContent=mult>1.0?`Multiplier: ${mult}× applied — risk score +${Math.round((mult-1)*100)}%`:'No multiplier active — solo drive baseline.';
+  }
+  saveCfg();
+}
+
 // ─── Init ─────────────────────────────────────────────────
 function init(){
   popYears();loadMakes();loadTuningMakes();
   if(isFirst()){show('sw');}
   else{loadCfg();updVehicleDisplay();initEJS();show('sm');ensurePermissions();}
   initGauge();initChart();setInterval(updUI,500);
+  initVoice();
+  setPassengers(ST.cfg.passengers||0);
   // Initial AI greeting after 2s
   setTimeout(()=>{
     if(ST.cfg.apiKey&&document.getElementById('sm').classList.contains('active')){
