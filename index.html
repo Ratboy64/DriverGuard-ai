@@ -183,7 +183,42 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
 .cs{color:var(--safe)!important}.cw{color:var(--warn)!important}.cd{color:var(--danger)!important}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
-/* ── DROWSINESS INDICATOR ────────────────────── */
+/* ── TRIP CONTROLS ───────────────────────────── */
+.trip-btn{border:none;border-radius:8px;font-family:var(--fhud);font-size:.65rem;font-weight:700;letter-spacing:2px;padding:6px 12px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.trip-start{background:linear-gradient(135deg,var(--safe),#00a855);color:#000}
+.trip-end{background:linear-gradient(135deg,var(--danger),#b00020);color:#fff;animation:tripblink 2s ease-in-out infinite}
+@keyframes tripblink{0%,100%{box-shadow:0 0 0 rgba(255,23,68,0)}50%{box-shadow:0 0 10px rgba(255,23,68,.5)}}
+.trip-timer{font-family:var(--fmono);font-size:.6rem;color:var(--safe);letter-spacing:2px;text-align:right}
+.trip-timer.inactive{color:var(--dim)}
+
+/* ── TRIP SUMMARY CARD ───────────────────────── */
+.tscard{background:linear-gradient(135deg,#0e0e1c,#110d1e);border:1px solid #2a1850;border-radius:14px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.tscard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ai),var(--accent))}
+.tsc-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:8px}
+.tsc-grade{font-family:var(--fhud);font-size:2rem;font-weight:900;width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid}
+.tsc-grade.ga{background:rgba(0,230,118,.12);border-color:var(--safe);color:var(--safe)}
+.tsc-grade.gb{background:rgba(0,180,255,.12);border-color:var(--accent);color:var(--accent)}
+.tsc-grade.gc{background:rgba(255,171,0,.12);border-color:var(--warn);color:var(--warn)}
+.tsc-grade.gd,.tsc-grade.gf{background:rgba(255,23,68,.12);border-color:var(--danger);color:var(--danger)}
+.tsc-meta{flex:1;min-width:0}
+.tsc-headline{font-family:var(--fui);font-size:.92rem;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:3px}
+.tsc-time{font-family:var(--fmono);font-size:.62rem;color:var(--dim);letter-spacing:1px}
+.tsc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.tsc-stat{background:var(--panel2);border-radius:7px;padding:7px 6px;text-align:center}
+.tsc-sv{font-family:var(--fhud);font-size:.82rem;font-weight:700;color:var(--accent)}
+.tsc-sl{font-family:var(--fmono);font-size:.52rem;color:var(--dim);letter-spacing:1px;margin-top:1px}
+.tsc-trend{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.tsc-trend-badge{font-family:var(--fmono);font-size:.62rem;padding:3px 8px;border-radius:99px;letter-spacing:1px}
+.trend-improving{background:rgba(0,230,118,.15);color:var(--safe);border:1px solid rgba(0,230,118,.3)}
+.trend-stable{background:rgba(0,180,255,.15);color:var(--accent);border:1px solid rgba(0,180,255,.3)}
+.trend-worsening{background:rgba(255,23,68,.15);color:var(--danger);border:1px solid rgba(255,23,68,.3)}
+.tsc-tip{font-family:var(--fmono);font-size:.72rem;color:#c8b4f8;line-height:1.55;padding:8px 10px;background:rgba(176,106,255,.07);border-radius:8px;border-left:2px solid var(--ai);margin-bottom:8px}
+.tsc-actions{display:flex;gap:7px}
+.tsc-act{flex:1;background:none;border:1px solid var(--border);border-radius:7px;padding:7px 4px;font-family:var(--fmono);font-size:.62rem;color:var(--dim);cursor:pointer;transition:all .2s;letter-spacing:1px}
+.tsc-act:active{transform:scale(.96)}
+.tsc-act.share{border-color:#2a1850;color:var(--ai)}
+.tsc-generating{text-align:center;padding:20px;font-family:var(--fmono);font-size:.72rem;color:var(--ai)}
+
 .drowsy-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
 .drowsy-badge{font-family:var(--fmono);font-size:.6rem;letter-spacing:1px;color:var(--dim);white-space:nowrap}
 .drowsy-badge.dw-warn{color:var(--warn)}
@@ -295,7 +330,9 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
         <span class="gdot" id="gdot"></span>
         <button class="hbtn" onclick="toggleDemo()">DEMO</button>
         <button class="hbtn" style="color:var(--ai);border-color:#2a1850" onclick="show('sai')">🤖 AI</button>
+        <button class="trip-btn trip-start" id="trip-btn" onclick="toggleTrip()">▶ TRIP</button>
       </div>
+      <div class="trip-timer inactive" id="trip-timer">NO ACTIVE TRIP</div>
       <span id="ibadge" style="font-family:var(--fhud);font-size:.55rem;color:var(--danger);display:none">⚠ <span id="ibn">0</span> INCIDENTS</span>
     </div>
   </div>
@@ -600,9 +637,13 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
 <div id="oi">
   <div class="thead">
     <div class="ttitle" style="color:var(--danger)">📋 INCIDENT LOG</div>
-    <button class="hbtn" onclick="closeLog()">✕ CLOSE</button>
+    <div style="display:flex;gap:6px">
+      <button class="hbtn" style="color:var(--ai);border-color:#2a1850;font-size:.6rem" onclick="toggleLogView()">SUMMARIES</button>
+      <button class="hbtn" onclick="closeLog()">✕ CLOSE</button>
+    </div>
   </div>
-  <div class="ilist" id="ilist"></div>
+  <div id="log-incidents" class="ilist" id="ilist"></div>
+  <div id="log-summaries" style="display:none;flex:1;overflow-y:auto;padding:13px;-webkit-overflow-scrolling:touch"></div>
 </div>
 
 <script>
@@ -641,6 +682,21 @@ const DS_WIN=300; // 30s at ~10Hz
 
 // ─── Speed limit state (Feature 1.3) ─────────────────────
 const SL={posted:null,fetchedAt:0,fetchLat:null,fetchLon:null,alertLevel:null,lastSpeakTime:0,fetching:false};
+
+// ─── Trip Session state (Feature 1.1) ────────────────────
+const TRIP={
+  active:false,
+  startTime:null,
+  speedSamples:[],
+  gForceSamples:[],
+  riskTimeline:[],
+  peakSpeed:0,
+  peakGForce:0,
+  lastSampleTime:0,
+  incidentCountAtStart:0
+};
+let _tripTimerInterval=null;
+let _logView='incidents'; // 'incidents' | 'summaries'
 
 // ─── AI Coach ────────────────────────────────────────────
 const chatHistory = [];
@@ -1285,6 +1341,19 @@ function updUI(){
   if(ST.cfg.alertOn)checkThresholds();
   runDrowsiness();
   checkSpeedLimit();
+  // Trip data sampling — every 5s while trip active
+  if(TRIP.active){
+    const now=Date.now();
+    if(now-TRIP.lastSampleTime>=5000){
+      TRIP.lastSampleTime=now;
+      if(ST.spd>0)TRIP.speedSamples.push(ST.spd);
+      const gf=parseFloat(Math.sqrt(ST.gLat*ST.gLat+ST.gLon*ST.gLon).toFixed(3));
+      TRIP.gForceSamples.push(gf);
+      TRIP.riskTimeline.push({ts:new Date().toISOString(),score:ST.comp});
+      if(ST.spd>TRIP.peakSpeed)TRIP.peakSpeed=ST.spd;
+      if(gf>TRIP.peakGForce)TRIP.peakGForce=gf;
+    }
+  }
   runAICoach();
 }
 
@@ -1335,18 +1404,35 @@ function logInc(type){
   }
 }
 function showLog(){
-  const list=document.getElementById('ilist');
-  if(!ST.incidents.length){list.innerHTML='<p style="font-family:var(--fmono);font-size:.72rem;color:var(--dim);text-align:center;margin-top:40px">No incidents this session.</p>';}
-  else{list.innerHTML=ST.incidents.slice().reverse().map(i=>{
-    const col=i.comp>=65?'var(--danger)':i.comp>=40?'var(--warn)':'var(--safe)';
-    return `<div class="iitem"><div class="itime">${new Date(i.ts).toLocaleString()} — ${i.veh||'Unknown Vehicle'}</div>
-    <div class="istats"><div class="istat"><div class="iv" style="color:${col}">${i.comp}</div><div class="il">RISK</div></div>
-    <div class="istat"><div class="iv">${i.spd}</div><div class="il">MPH</div></div>
-    <div class="istat"><div class="iv">${i.gLat}g</div><div class="il">LAT-G</div></div>
-    <div class="istat"><div class="iv" style="color:var(--warn)">${i.type}</div><div class="il">TRIGGER</div></div></div>
-    ${i.aiSummary?`<div class="iaisumm">🤖 ${i.aiSummary}</div>`:''}</div>`;
-  }).join('');}
+  _logView='incidents';
+  renderIncidentLog();
   document.getElementById('oi').classList.add('active');
+}
+function renderIncidentLog(){
+  const list=document.getElementById('log-incidents');
+  const sumDiv=document.getElementById('log-summaries');
+  if(_logView==='incidents'){
+    list.style.display='';sumDiv.style.display='none';
+    if(!ST.incidents.length){list.innerHTML='<p style="font-family:var(--fmono);font-size:.72rem;color:var(--dim);text-align:center;margin-top:40px">No incidents this session.</p>';}
+    else{list.innerHTML=ST.incidents.slice().reverse().map(i=>{
+      const col=i.comp>=65?'var(--danger)':i.comp>=40?'var(--warn)':'var(--safe)';
+      return `<div class="iitem"><div class="itime">${new Date(i.ts).toLocaleString()} — ${i.veh||'Unknown Vehicle'}</div>
+      <div class="istats"><div class="istat"><div class="iv" style="color:${col}">${i.comp}</div><div class="il">RISK</div></div>
+      <div class="istat"><div class="iv">${i.spd}</div><div class="il">MPH</div></div>
+      <div class="istat"><div class="iv">${i.gLat}g</div><div class="il">LAT-G</div></div>
+      <div class="istat"><div class="iv" style="color:var(--warn)">${i.type}</div><div class="il">TRIGGER</div></div></div>
+      ${i.aiSummary?`<div class="iaisumm">🤖 ${i.aiSummary}</div>`:''}</div>`;
+    }).join('');}
+  }else{
+    list.style.display='none';sumDiv.style.display='';
+    renderTripSummaries(sumDiv);
+  }
+}
+function toggleLogView(){
+  _logView=_logView==='incidents'?'summaries':'incidents';
+  const btn=document.querySelector('#oi .thead .hbtn');
+  if(btn)btn.textContent=_logView==='incidents'?'SUMMARIES':'INCIDENTS';
+  renderIncidentLog();
 }
 function closeLog(){document.getElementById('oi').classList.remove('active');}
 function clearLog(){if(!confirm('Clear all incident records?'))return;ST.incidents=[];ST.sessCount=0;saveCfg();closeLog();}
@@ -1579,6 +1665,220 @@ async function saveVehicle(){
   ST.veh.stars=await fetchStars(yr,mk,mo);
   updVehicleDisplay();saveCfg();
   res.style.color='var(--safe)';res.textContent=`✓ Vehicle updated: ${yr} ${mk} ${mo}${ST.veh.stars?' (★'+ST.veh.stars+')':''}`;
+}
+
+// ─── Trip Summary Cards (Feature 1.1) ────────────────────
+function toggleTrip(){
+  if(TRIP.active)endTrip();else startTrip();
+}
+function startTrip(){
+  TRIP.active=true;
+  TRIP.startTime=new Date().toISOString();
+  TRIP.speedSamples=[];TRIP.gForceSamples=[];TRIP.riskTimeline=[];
+  TRIP.peakSpeed=0;TRIP.peakGForce=0;TRIP.lastSampleTime=0;
+  TRIP.incidentCountAtStart=ST.sessCount;
+  // UI
+  const btn=document.getElementById('trip-btn');
+  if(btn){btn.textContent='■ END';btn.className='trip-btn trip-end';}
+  const timer=document.getElementById('trip-timer');
+  if(timer)timer.className='trip-timer';
+  clearInterval(_tripTimerInterval);
+  _tripTimerInterval=setInterval(updTripTimer,1000);
+  speak('Trip started. Drive safe.','summary');
+}
+function updTripTimer(){
+  if(!TRIP.active||!TRIP.startTime)return;
+  const el=document.getElementById('trip-timer');if(!el)return;
+  const secs=Math.floor((Date.now()-new Date(TRIP.startTime).getTime())/1000);
+  const m=Math.floor(secs/60),s=secs%60;
+  el.textContent=`● ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} ACTIVE`;
+}
+async function endTrip(){
+  if(!TRIP.active)return;
+  TRIP.active=false;
+  clearInterval(_tripTimerInterval);
+  // UI reset
+  const btn=document.getElementById('trip-btn');
+  if(btn){btn.textContent='▶ TRIP';btn.className='trip-btn trip-start';}
+  const timer=document.getElementById('trip-timer');
+  if(timer){timer.textContent='GENERATING SUMMARY…';timer.className='trip-timer';}
+  // Build session object
+  const endTime=new Date().toISOString();
+  const durationMs=new Date(endTime)-new Date(TRIP.startTime);
+  const durationMin=Math.round(durationMs/60000);
+  const spd=TRIP.speedSamples;
+  const gf=TRIP.gForceSamples;
+  const avgSpd=spd.length?Math.round(spd.reduce((a,b)=>a+b,0)/spd.length):0;
+  const avgGF=gf.length?parseFloat((gf.reduce((a,b)=>a+b,0)/gf.length).toFixed(3)):0;
+  const incidentsThisTrip=ST.sessCount-TRIP.incidentCountAtStart;
+  const recentRisk=TRIP.riskTimeline.slice(-10).map(r=>r.score);
+  const riskTrendRaw=recentRisk.length>=4?(()=>{
+    const h=recentRisk.slice(Math.floor(recentRisk.length/2));
+    const l=recentRisk.slice(0,Math.floor(recentRisk.length/2));
+    const hAvg=h.reduce((a,b)=>a+b,0)/h.length;
+    const lAvg=l.reduce((a,b)=>a+b,0)/l.length;
+    return hAvg-lAvg;
+  })():0;
+  const sessionObj={
+    startTime:TRIP.startTime,endTime,durationMinutes:durationMin,
+    avgSpeedMPH:avgSpd,maxSpeedMPH:TRIP.peakSpeed,
+    avgGForce:avgGF,peakGForce:parseFloat(TRIP.peakGForce.toFixed(3)),
+    riskScoreTimeline:TRIP.riskTimeline.slice(-20),
+    avgRiskScore:TRIP.riskTimeline.length?Math.round(TRIP.riskTimeline.reduce((a,b)=>a+b.score,0)/TRIP.riskTimeline.length):0,
+    peakRiskScore:TRIP.riskTimeline.length?Math.max(...TRIP.riskTimeline.map(r=>r.score)):0,
+    incidentCount:incidentsThisTrip,
+    drowsyEventCount:DS.sessionEvents.length,
+    speedLimitViolations:SL.alertLevel?1:0,
+    vehicleName:[ST.veh.year,ST.veh.make,ST.veh.model].filter(Boolean).join(' ')||'Unknown',
+    passengerCount:ST.cfg.passengers,
+    riskMultiplierApplied:passengerMultiplier()
+  };
+  // Generate summary via Claude
+  let summary=null;
+  if(ST.cfg.apiKey){
+    summary=await generateTripSummary(sessionObj);
+  }
+  if(!summary){
+    // Fallback if no API key or call fails
+    const g=sessionObj.avgRiskScore<30?'A':sessionObj.avgRiskScore<50?'B':sessionObj.avgRiskScore<65?'C':sessionObj.avgRiskScore<80?'D':'F';
+    summary={
+      grade:g,
+      headline:`${durationMin}-minute trip completed with ${incidentsThisTrip} incident${incidentsThisTrip!==1?'s':''}.`,
+      avgSpeed:`Average ${avgSpd} MPH`,
+      gForceSummary:`Peak G-force ${TRIP.peakGForce.toFixed(2)}g`,
+      riskTrend:riskTrendRaw>8?'worsening':riskTrendRaw<-8?'improving':'stable',
+      coachingTip:'Review your trip incidents for areas to improve.',
+      parentNote:`${durationMin}-min trip, avg risk ${sessionObj.avgRiskScore}/100, ${incidentsThisTrip} incidents.`
+    };
+  }
+  // Store the card
+  const card={
+    ...summary,
+    type:'trip_summary',
+    ts:endTime,
+    session:sessionObj,
+    id:`trip_${Date.now()}`
+  };
+  const existing=getTripSummaries();
+  existing.unshift(card);
+  if(existing.length>50)existing.pop();
+  saveTripSummaries(existing);
+  // Reset timer label
+  if(timer){
+    const g=summary.grade;
+    timer.textContent=`LAST TRIP: GRADE ${g}`;
+    timer.className='trip-timer';
+  }
+  speak(`Trip complete. Your grade is ${summary.grade}.`,'summary');
+  // Auto-show summaries view
+  _logView='summaries';
+  if(document.getElementById('oi').classList.contains('active'))renderIncidentLog();
+}
+async function generateTripSummary(session){
+  const prompt=`Analyze this driving trip and respond ONLY with a valid JSON object — no markdown, no explanation, no trailing text.
+Return exactly this structure:
+{
+  "grade": "A",
+  "headline": "one sentence verdict about this specific trip",
+  "avgSpeed": "summary phrase about speed behavior",
+  "gForceSummary": "summary phrase about G-force/smoothness",
+  "riskTrend": "improving",
+  "coachingTip": "one actionable tip under 20 words",
+  "parentNote": "one calm sentence for a parent report"
+}
+grade must be A/B/C/D/F. riskTrend must be improving/stable/worsening.
+Trip data: ${JSON.stringify(session)}`;
+  try{
+    const raw=await callClaude(prompt,{trip_analysis:true},300);
+    if(!raw)return null;
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const start=clean.indexOf('{'),end=clean.lastIndexOf('}');
+    if(start===-1||end===-1)return null;
+    return JSON.parse(clean.slice(start,end+1));
+  }catch(e){console.warn('Trip summary parse failed:',e);return null;}
+}
+function getTripSummaries(){
+  try{const r=localStorage.getItem('dg_trip_summaries');return r?JSON.parse(r):[];}catch(e){return [];}
+}
+function saveTripSummaries(arr){
+  try{localStorage.setItem('dg_trip_summaries',JSON.stringify(arr));}catch(e){}
+}
+function gradeClass(g){
+  if(g==='A')return 'ga';if(g==='B')return 'gb';if(g==='C')return 'gc';return 'gd';
+}
+function trendClass(t){
+  if(t==='improving')return 'trend-improving';if(t==='worsening')return 'trend-worsening';return 'trend-stable';
+}
+function trendIcon(t){
+  return t==='improving'?'↗ IMPROVING':t==='worsening'?'↘ WORSENING':'→ STABLE';
+}
+function renderTripSummaries(container){
+  const cards=getTripSummaries();
+  if(!cards.length){
+    container.innerHTML='<p style="font-family:var(--fmono);font-size:.72rem;color:var(--dim);text-align:center;margin-top:40px">No trip summaries yet.<br><br>Tap ▶ TRIP to start recording.</p>';
+    return;
+  }
+  container.innerHTML=cards.map((c,idx)=>{
+    const s=c.session||{};
+    const dur=s.durationMinutes||0;
+    const dt=new Date(c.ts).toLocaleString();
+    return `<div class="tscard">
+      <div class="tsc-head">
+        <div class="tsc-grade ${gradeClass(c.grade)}">${c.grade}</div>
+        <div class="tsc-meta">
+          <div class="tsc-headline">${c.headline||'Trip complete.'}</div>
+          <div class="tsc-time">${dt} · ${dur} min · ${s.vehicleName||''}</div>
+        </div>
+      </div>
+      <div class="tsc-stats">
+        <div class="tsc-stat"><div class="tsc-sv">${s.avgSpeedMPH||0}</div><div class="tsc-sl">AVG MPH</div></div>
+        <div class="tsc-stat"><div class="tsc-sv">${s.peakGForce||0}g</div><div class="tsc-sl">PEAK G</div></div>
+        <div class="tsc-stat"><div class="tsc-sv">${s.avgRiskScore||0}</div><div class="tsc-sl">AVG RISK</div></div>
+        <div class="tsc-stat"><div class="tsc-sv">${s.incidentCount||0}</div><div class="tsc-sl">INCIDENTS</div></div>
+        <div class="tsc-stat"><div class="tsc-sv">${s.drowsyEventCount||0}</div><div class="tsc-sl">DROWSY</div></div>
+        <div class="tsc-stat"><div class="tsc-sv">${s.passengerCount||0}</div><div class="tsc-sl">PAX</div></div>
+      </div>
+      <div class="tsc-trend">
+        <span class="tsc-trend-badge ${trendClass(c.riskTrend)}">${trendIcon(c.riskTrend)}</span>
+        <span style="font-family:var(--fmono);font-size:.62rem;color:var(--dim)">${c.avgSpeed||''}</span>
+      </div>
+      <div class="tsc-tip">💡 ${c.coachingTip||''}</div>
+      <div class="tsc-actions">
+        <button class="tsc-act share" onclick="shareTripSummary(${idx})">📧 SHARE WITH PARENT</button>
+        <button class="tsc-act" onclick="deleteTripSummary(${idx})">🗑 DELETE</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function shareTripSummary(idx){
+  const cards=getTripSummaries();
+  const c=cards[idx];if(!c)return;
+  if(!ST.cfg.ejsSvc||!ST.cfg.ejsTmpl||!ST.cfg.ejsKey||!ST.cfg.email){
+    alert('Set up EmailJS in ⚙ TUNE → Parent Email Alerts first.');return;
+  }
+  const s=c.session||{};
+  try{
+    await emailjs.send(ST.cfg.ejsSvc,ST.cfg.ejsTmpl,{
+      to_email:ST.cfg.email,
+      trigger_type:'TRIP SUMMARY',
+      trigger_val:`Grade: ${c.grade}`,
+      risk_score:s.avgRiskScore||0,
+      speed:s.maxSpeedMPH||0,
+      lat_g:s.peakGForce||0,
+      ai_analysis:c.parentNote||c.headline||'Trip summary attached.',
+      vehicle:s.vehicleName||'Unknown',
+      session_incidents:s.incidentCount||0,
+      timestamp:new Date(c.ts).toLocaleString()
+    });
+    alert('✓ Trip summary sent to parent.');
+  }catch(e){alert('Email failed: '+(e.text||e.message||'Check EmailJS settings'));}
+}
+function deleteTripSummary(idx){
+  const cards=getTripSummaries();
+  cards.splice(idx,1);
+  saveTripSummaries(cards);
+  const container=document.getElementById('log-summaries');
+  if(container)renderTripSummaries(container);
 }
 
 // ─── Drowsiness Detection (Feature 1.2) ──────────────────
