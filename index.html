@@ -330,6 +330,7 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
         <span class="gdot" id="gdot"></span>
         <button class="hbtn" onclick="toggleDemo()">DEMO</button>
         <button class="hbtn" style="color:var(--ai);border-color:#2a1850" onclick="show('sai')">🤖 AI</button>
+        <button class="hbtn" id="fsbtn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
         <button class="trip-btn trip-start" id="trip-btn" onclick="toggleTrip()">▶ TRIP</button>
       </div>
       <div class="trip-timer inactive" id="trip-timer">NO ACTIVE TRIP</div>
@@ -2084,6 +2085,31 @@ function setPassengers(n){
   }
   saveCfg();
 }
+
+// ─── Fullscreen (Feature: full screen toggle) ────────────
+function toggleFullscreen(){
+  const btn=document.getElementById('fsbtn');
+  // iOS Safari: Fullscreen API not supported — already fullscreen as installed PWA
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(isIOS){
+    if(btn){btn.title='Install to Home Screen for fullscreen on iOS';}
+    alert('On iPhone, tap Share → Add to Home Screen to run DriverGuard in fullscreen mode.');
+    return;
+  }
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(e=>console.warn('FS:',e));
+  }else{
+    document.exitFullscreen();
+  }
+}
+function updFSBtn(){
+  const btn=document.getElementById('fsbtn');if(!btn)return;
+  const active=!!document.fullscreenElement;
+  btn.textContent=active?'⛶✕':'⛶';
+  btn.style.borderColor=active?'var(--accent)':'';
+  btn.style.color=active?'var(--accent)':'';
+}
+document.addEventListener('fullscreenchange',updFSBtn);
 
 // ─── Init ─────────────────────────────────────────────────
 function init(){
