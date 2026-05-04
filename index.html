@@ -250,6 +250,61 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
 .vspeaking{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ai);margin-left:5px;vertical-align:middle;opacity:0;flex-shrink:0;margin-top:3px}
 .vspeaking.active{animation:vpulse .7s ease-in-out infinite;opacity:1}
 @keyframes vpulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.7);opacity:.4}}
+/* ── VEHICLE PROFILES ────────────────────────── */
+#ovp{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:175;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+#ovp.active{display:flex}
+.vp-view{display:none;flex-direction:column;flex:1;overflow:hidden}
+.vp-view.active{display:flex}
+.vp-list{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch}
+.vpc{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:9px;cursor:pointer;transition:border-color .2s;position:relative}
+.vpc:active{transform:scale(.98)}
+.vpc.vp-active-card{border-color:var(--safe);background:linear-gradient(135deg,#071a0f,#0e0e1c)}
+.vpc-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.vpc-icon{font-size:1.4rem;flex-shrink:0}
+.vpc-name{font-family:var(--fhud);font-size:.8rem;font-weight:700;color:var(--text);flex:1}
+.vpc-active-badge{font-family:var(--fmono);font-size:.55rem;color:var(--safe);background:rgba(0,230,118,.12);
+  border:1px solid rgba(0,230,118,.3);border-radius:99px;padding:2px 7px;letter-spacing:1px;white-space:nowrap}
+.vpc-veh{font-family:var(--fmono);font-size:.68rem;color:var(--dim);margin-bottom:5px}
+.vpc-cal-row{display:flex;gap:6px;flex-wrap:wrap}
+.vpc-cal-chip{font-family:var(--fmono);font-size:.58rem;padding:3px 7px;border-radius:6px;letter-spacing:1px}
+.chip-done{background:rgba(0,230,118,.1);color:var(--safe);border:1px solid rgba(0,230,118,.25)}
+.chip-pend{background:var(--panel2);color:var(--dim);border:1px solid var(--border)}
+.vp-thr-row{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:7px}
+.vp-thr{background:var(--panel2);border-radius:6px;padding:5px;text-align:center}
+.vp-thr-v{font-family:var(--fhud);font-size:.72rem;font-weight:700;color:var(--accent)}
+.vp-thr-l{font-family:var(--fmono);font-size:.5rem;color:var(--dim);letter-spacing:1px;margin-top:1px}
+.vpc-actions{display:flex;gap:6px;margin-top:9px}
+.vpc-act{flex:1;background:none;border:1px solid var(--border);border-radius:7px;padding:7px 4px;
+  font-family:var(--fmono);font-size:.6rem;color:var(--dim);cursor:pointer;letter-spacing:1px}
+.vpc-act.activate{border-color:var(--safe);color:var(--safe)}
+.vpc-act.cal-act{border-color:var(--accent);color:var(--accent)}
+.vpc-act.danger{border-color:var(--danger);color:var(--danger)}
+/* New profile form */
+.vp-form{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
+/* Static calibration */
+.cal-progress{position:relative;height:8px;background:var(--panel2);border-radius:4px;overflow:hidden;margin:12px 0}
+.cal-progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--ai));border-radius:4px;transition:width .5s linear;width:0%}
+.cal-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.cal-stat{background:var(--panel2);border-radius:8px;padding:8px;text-align:center}
+.cal-stat-v{font-family:var(--fhud);font-size:.88rem;font-weight:700;color:var(--accent)}
+.cal-stat-l{font-family:var(--fmono);font-size:.52rem;color:var(--dim);letter-spacing:1px;margin-top:2px}
+/* HUD profile badge */
+.vp-hud-badge{display:flex;align-items:center;gap:5px;cursor:pointer;padding:3px 8px;border-radius:6px;
+  background:var(--panel2);border:1px solid var(--border);transition:border-color .2s}
+.vp-hud-badge:active{transform:scale(.96)}
+.vp-hud-badge.calibrated{border-color:rgba(0,230,118,.3)}
+.vp-hud-icon{font-size:.85rem}
+.vp-hud-name{font-family:var(--fmono);font-size:.58rem;color:var(--lbl);letter-spacing:1px;max-width:80px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vp-hud-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.vp-hud-dot.calibrated{background:var(--safe);box-shadow:0 0 4px var(--safe)}
+/* Post-trip cal sheet */
+#ocal{position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:2px solid var(--accent);
+  border-radius:16px 16px 0 0;padding:18px 16px 28px;z-index:180;
+  transform:translateY(100%);transition:transform .3s ease;
+  padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+#ocal.active{transform:translateY(0)}
 </style>
 </head>
 <body>
@@ -368,9 +423,16 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
           <button class="pbtn" id="pb4" onclick="setPassengers(4)">4+</button>
         </div>
       </div>
-      <div class="drowsy-wrap">
-        <div class="drowsy-badge" id="drowsy-badge">👁 --</div>
-        <div class="drowsy-lbl">FATIGUE</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+        <div class="drowsy-wrap">
+          <div class="drowsy-badge" id="drowsy-badge">👁 --</div>
+          <div class="drowsy-lbl">FATIGUE</div>
+        </div>
+        <div class="vp-hud-badge" id="vp-hud-badge" onclick="openProfileManager()">
+          <span class="vp-hud-dot" id="vp-hud-dot"></span>
+          <span class="vp-hud-name" id="vp-hud-name">NO PROFILE</span>
+          <span style="font-family:var(--fmono);font-size:.52rem;color:var(--dim)">▸</span>
+        </div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         <button class="vtoggle" id="vtoggle" onclick="toggleVoice()">🔇 VOICE</button>
@@ -497,6 +559,13 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
       <div class="itext">AI coach sends live updates during your drive at the interval above. Longer intervals = fewer API calls.</div>
       <button class="btn bs" onclick="testAI()" style="margin-bottom:6px">Test AI Connection</button>
       <div id="aires" class="err"></div>
+    </div>
+
+    <div class="tsec">
+      <div class="tsectl" style="color:var(--safe)">🚗 VEHICLE PROFILES</div>
+      <div class="itext" style="margin-bottom:10px">Store calibration data for each vehicle+mount combination. Active profile auto-adjusts drowsiness and G-force thresholds to reduce false alerts.</div>
+      <div id="tune-active-profile" class="itext" style="color:var(--dim);margin-bottom:10px">No active profile.</div>
+      <button class="btn bs" onclick="saveTuning();openProfileManager()" style="margin-bottom:7px">Manage Profiles →</button>
     </div>
 
     <div class="tsec">
@@ -647,6 +716,106 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:15px;height:15px;b
   <div id="log-summaries" style="display:none;flex:1;overflow-y:auto;padding:13px;-webkit-overflow-scrolling:touch"></div>
 </div>
 
+<!-- ═══════════════ VEHICLE PROFILE MANAGER ══════════════ -->
+<div id="ovp">
+  <!-- LIST VIEW -->
+  <div class="vp-view active" id="vp-list-view">
+    <div class="thead">
+      <div class="ttitle" style="color:var(--safe)">🚗 VEHICLE PROFILES</div>
+      <div style="display:flex;gap:6px">
+        <button class="hbtn" style="color:var(--safe);border-color:rgba(0,230,118,.3)" onclick="showVPForm()">+ NEW</button>
+        <button class="hbtn" onclick="closeProfileManager()">✕ CLOSE</button>
+      </div>
+    </div>
+    <div class="itext" style="padding:8px 13px 0;margin:0">Profiles store static calibration (idle noise floor + mount angle) and optional drive baselines. Active profile adjusts alert thresholds automatically.</div>
+    <div class="vp-list" id="vp-list"></div>
+  </div>
+
+  <!-- NEW / EDIT PROFILE FORM -->
+  <div class="vp-view" id="vp-form-view">
+    <div class="thead">
+      <div class="ttitle" style="color:var(--safe)">🚗 NEW PROFILE</div>
+      <button class="hbtn" onclick="showVPList()">← BACK</button>
+    </div>
+    <div class="vp-form">
+      <div class="tsec">
+        <div class="tsectl" style="color:var(--safe)">PROFILE IDENTITY</div>
+        <div class="fg"><span class="fl">PROFILE NAME</span>
+          <input type="text" id="vp-name-inp" placeholder="e.g. Dad's Truck — Dash Mount" maxlength="50"></div>
+        <div class="fg"><span class="fl">MOUNT TYPE</span>
+          <select id="vp-mount">
+            <option value="vent">Vent Clip</option>
+            <option value="dash">Dash Mount (flat)</option>
+            <option value="windshield">Windshield Mount</option>
+            <option value="cupholder">Cup Holder / Flat</option>
+            <option value="other">Other</option>
+          </select></div>
+        <div class="itext">Profile will use the current vehicle: <strong id="vp-cur-veh" style="color:var(--accent)"></strong>. Change vehicle in Tune → Change Vehicle first if needed.</div>
+      </div>
+
+      <div class="tsec">
+        <div class="tsectl" style="color:var(--accent)">STEP 1 — STATIC CALIBRATION</div>
+        <div class="itext">Park the vehicle with engine running. Hold the phone in its mount and keep perfectly still for 30 seconds. This captures the idle vibration signature and mount angle offset — the most important calibration step.</div>
+        <div id="vp-cal-status" class="itext" style="color:var(--dim)">Not yet calibrated.</div>
+        <div class="cal-progress" id="vp-cal-prog" style="display:none">
+          <div class="cal-progress-bar" id="vp-cal-bar"></div>
+        </div>
+        <div class="cal-stat-grid" id="vp-cal-results" style="display:none">
+          <div class="cal-stat"><div class="cal-stat-v" id="vc-noise">--</div><div class="cal-stat-l">NOISE FLOOR</div></div>
+          <div class="cal-stat"><div class="cal-stat-v" id="vc-lat">--</div><div class="cal-stat-l">MOUNT LAT°</div></div>
+          <div class="cal-stat"><div class="cal-stat-v" id="vc-vert">--</div><div class="cal-stat-l">VERT OFFSET</div></div>
+        </div>
+        <button class="btn bp" id="vp-cal-btn" onclick="startStaticCal()">📡 START 30s CALIBRATION</button>
+        <div id="vp-cal-err" class="err"></div>
+      </div>
+
+      <div class="tsec">
+        <div class="tsectl" style="color:var(--warn)">STEP 2 — DRIVE BASELINE (optional)</div>
+        <div class="itext">Complete a trip you consider safe and representative of normal driving in this vehicle, then use it as the baseline. Thresholds will be tuned relative to that trip's actual sensor data. You can always do this later after saving.</div>
+        <div class="itext" id="vp-trip-status" style="color:var(--dim)">No drive baseline yet — complete a trip first.</div>
+        <button class="btn bs" id="vp-trip-btn" onclick="calibrateFromLastTrip()" disabled>USE LAST TRIP AS BASELINE</button>
+      </div>
+
+      <div class="err" id="vp-save-err" style="padding:0 0 6px"></div>
+      <button class="btn bp" onclick="saveNewProfile()">SAVE PROFILE</button>
+      <button class="btn bs" style="margin-top:7px" onclick="showVPList()">Cancel</button>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+
+  <!-- STATIC CAL RUNNING VIEW -->
+  <div class="vp-view" id="vp-cal-view">
+    <div class="thead">
+      <div class="ttitle" style="color:var(--accent)">📡 CALIBRATING…</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px">
+      <div style="font-family:var(--fhud);font-size:4rem;font-weight:900;color:var(--accent);margin-bottom:8px" id="cal-countdown">30</div>
+      <div style="font-family:var(--fmono);font-size:.72rem;color:var(--lbl);letter-spacing:2px;margin-bottom:24px">SECONDS REMAINING</div>
+      <div class="cal-progress" style="width:100%;max-width:320px">
+        <div class="cal-progress-bar" id="cal-main-bar"></div>
+      </div>
+      <div style="font-family:var(--fmono);font-size:.78rem;color:var(--dim);margin-top:20px;text-align:center;max-width:280px;line-height:1.7">Keep the phone still in its mount. Engine running. Do not move the vehicle.</div>
+      <div class="cal-stat-grid" style="width:100%;max-width:320px;margin-top:24px">
+        <div class="cal-stat"><div class="cal-stat-v" id="cal-live-lat">0.000</div><div class="cal-stat-l">LAT-G</div></div>
+        <div class="cal-stat"><div class="cal-stat-v" id="cal-live-vert">0.000</div><div class="cal-stat-l">VERT-G</div></div>
+        <div class="cal-stat"><div class="cal-stat-v" id="cal-live-n">0</div><div class="cal-stat-l">SAMPLES</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ POST-TRIP CAL OFFER ══════════════════ -->
+<div id="ocal">
+  <div style="font-family:var(--fhud);font-size:.82rem;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:6px">🎯 USE THIS TRIP AS BASELINE?</div>
+  <div style="font-family:var(--fmono);font-size:.75rem;color:var(--lbl);line-height:1.65;margin-bottom:14px" id="ocal-body">
+    If this trip represents safe, normal driving in this vehicle, you can use it to calibrate your active profile — thresholds will adapt to your actual driving style and mount.
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn bp" style="flex:2" onclick="acceptTripCal()">✓ USE AS BASELINE</button>
+    <button class="btn bs" style="flex:1" onclick="declineTripCal()">SKIP</button>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════
 //  DRIVERGUARD AI — Complete Application
@@ -699,8 +868,334 @@ const TRIP={
 let _tripTimerInterval=null;
 let _logView='incidents'; // 'incidents' | 'summaries'
 
-// ─── AI Coach ────────────────────────────────────────────
-const chatHistory = [];
+// ─── Vehicle Profile state ────────────────────────────────
+const CAL={
+  running:false,
+  samples:{lat:[],vert:[]},
+  startTime:0,
+  duration:30000,
+  interval:null,
+  pendingResult:null
+};
+// Storage helpers
+function getProfiles(){try{const r=localStorage.getItem('dg_vehicle_profiles');return r?JSON.parse(r):[];}catch(e){return[];}}
+function saveProfiles(arr){try{localStorage.setItem('dg_vehicle_profiles',JSON.stringify(arr));}catch(e){}}
+function getActiveProfileId(){return localStorage.getItem('dg_active_profile')||null;}
+function setActiveProfileId(id){if(id)localStorage.setItem('dg_active_profile',id);else localStorage.removeItem('dg_active_profile');}
+function getActiveProfile(){const id=getActiveProfileId();if(!id)return null;return getProfiles().find(p=>p.id===id)||null;}
+
+// Safety clamp limits — thresholds can never go outside these bounds
+const THR_CLAMP={
+  gforceAlertMin:0.22,gforceAlertMax:0.70,
+  drowsyWarnMin:0.04,drowsyWarnMax:0.12,
+  drowsyCritMin:0.08,drowsyCritMax:0.20
+};
+function deriveThresholds(driveCal,staticCal){
+  const noise=staticCal?.noiseFloor||0;
+  const baseDrowsyWarn=(driveCal?.normalJitter||0.06)+noise;
+  const baseDrowsyCrit=baseDrowsyWarn*1.6;
+  const baseGForce=(driveCal?.normalTurnG||0.20)*1.75;
+  return {
+    gforceAlert:Math.min(Math.max(baseGForce,THR_CLAMP.gforceAlertMin),THR_CLAMP.gforceAlertMax),
+    drowsyWarn:Math.min(Math.max(baseDrowsyWarn,THR_CLAMP.drowsyWarnMin),THR_CLAMP.drowsyWarnMax),
+    drowsyCrit:Math.min(Math.max(baseDrowsyCrit,THR_CLAMP.drowsyCritMin),THR_CLAMP.drowsyCritMax)
+  };
+}
+function applyProfileThresholds(){
+  const p=getActiveProfile();
+  if(!p||!p.derivedThresholds)return;
+  const t=p.derivedThresholds;
+  if(t.drowsyWarn&&ST.cfg.drowsiness)ST.cfg.drowsiness.warnThreshold=t.drowsyWarn;
+  if(t.drowsyCrit&&ST.cfg.drowsiness)ST.cfg.drowsiness.critThreshold=t.drowsyCrit;
+  if(t.gforceAlert)ST.cfg.thr.gf=t.gforceAlert;
+}
+function updVPHudBadge(){
+  const p=getActiveProfile();
+  const nameEl=document.getElementById('vp-hud-name');
+  const dotEl=document.getElementById('vp-hud-dot');
+  const badge=document.getElementById('vp-hud-badge');
+  if(!nameEl)return;
+  if(!p){nameEl.textContent='NO PROFILE';if(dotEl)dotEl.className='vp-hud-dot';if(badge)badge.className='vp-hud-badge';return;}
+  nameEl.textContent=p.name.toUpperCase();
+  const cal=!!(p.staticCal||p.driveCal);
+  if(dotEl)dotEl.className='vp-hud-dot'+(cal?' calibrated':'');
+  if(badge)badge.className='vp-hud-badge'+(cal?' calibrated':'');
+  // Update tune panel note
+  const tn=document.getElementById('tune-active-profile');
+  if(tn){
+    const thr=p.derivedThresholds;
+    tn.innerHTML=thr
+      ?`<strong style="color:var(--safe)">Active:</strong> ${p.name}<br><span style="font-size:.7rem">G-alert: ${thr.gforceAlert?.toFixed(2)}g · Drowsy warn: ${thr.drowsyWarn?.toFixed(3)} · Drowsy crit: ${thr.drowsyCrit?.toFixed(3)}</span>`
+      :`<strong style="color:var(--warn)">Active (uncalibrated):</strong> ${p.name}`;
+  }
+}
+
+// ─── Profile Manager UI ───────────────────────────────────
+function openProfileManager(){
+  showVPList();
+  document.getElementById('ovp').classList.add('active');
+}
+function closeProfileManager(){document.getElementById('ovp').classList.remove('active');}
+function showVPList(){
+  document.querySelectorAll('.vp-view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('vp-list-view').classList.add('active');
+  renderProfileList();
+}
+function showVPForm(){
+  document.querySelectorAll('.vp-view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('vp-form-view').classList.add('active');
+  // Populate current vehicle name
+  const veh=[ST.veh.year,ST.veh.make,ST.veh.model].filter(Boolean).join(' ')||'No vehicle set';
+  document.getElementById('vp-cur-veh').textContent=veh;
+  // Reset form
+  document.getElementById('vp-name-inp').value='';
+  document.getElementById('vp-cal-status').textContent='Not yet calibrated.';
+  document.getElementById('vp-cal-status').style.color='var(--dim)';
+  document.getElementById('vp-cal-prog').style.display='none';
+  document.getElementById('vp-cal-results').style.display='none';
+  document.getElementById('vp-cal-btn').textContent='📡 START 30s CALIBRATION';
+  document.getElementById('vp-cal-btn').disabled=false;
+  document.getElementById('vp-save-err').textContent='';
+  CAL.pendingResult=null;
+  // Check if last trip is available
+  const trips=getTripSummaries();
+  const tripBtn=document.getElementById('vp-trip-btn');
+  const tripStatus=document.getElementById('vp-trip-status');
+  if(trips.length){
+    const last=trips[0];const s=last.session||{};
+    tripBtn.disabled=false;
+    tripStatus.textContent=`Last trip: ${new Date(last.ts).toLocaleDateString()} · ${s.durationMinutes||0} min · Avg risk ${s.avgRiskScore||0}`;
+    tripStatus.style.color='var(--lbl)';
+  }
+}
+function renderProfileList(){
+  const profiles=getProfiles();
+  const activeId=getActiveProfileId();
+  const container=document.getElementById('vp-list');
+  if(!profiles.length){
+    container.innerHTML=`<div style="text-align:center;padding:40px 20px;font-family:var(--fmono);font-size:.75rem;color:var(--dim)">
+      No profiles yet.<br><br>Tap <strong style="color:var(--safe)">+ NEW</strong> to create your first vehicle profile.<br><br>
+      <span style="font-size:.65rem">Each vehicle+mount combination should have its own profile.</span></div>`;
+    return;
+  }
+  container.innerHTML=profiles.map((p,idx)=>{
+    const isActive=p.id===activeId;
+    const hasStat=!!p.staticCal;const hasDrive=!!p.driveCal;
+    const thr=p.derivedThresholds;
+    return `<div class="vpc${isActive?' vp-active-card':''}">
+      <div class="vpc-head">
+        <span class="vpc-icon">🚗</span>
+        <span class="vpc-name">${p.name}</span>
+        ${isActive?'<span class="vpc-active-badge">✓ ACTIVE</span>':''}
+      </div>
+      <div class="vpc-veh">${p.vehicle||'Unknown vehicle'} · ${p.mountType||'Unknown mount'}</div>
+      <div class="vpc-cal-row">
+        <span class="vpc-cal-chip ${hasStat?'chip-done':'chip-pend'}">${hasStat?'✓ STATIC CAL':'○ STATIC CAL'}</span>
+        <span class="vpc-cal-chip ${hasDrive?'chip-done':'chip-pend'}">${hasDrive?'✓ DRIVE BASE':'○ DRIVE BASE'}</span>
+      </div>
+      ${thr?`<div class="vp-thr-row">
+        <div class="vp-thr"><div class="vp-thr-v">${thr.gforceAlert?.toFixed(2)}g</div><div class="vp-thr-l">G-ALERT</div></div>
+        <div class="vp-thr"><div class="vp-thr-v">${thr.drowsyWarn?.toFixed(3)}</div><div class="vp-thr-l">DROWSY WARN</div></div>
+        <div class="vp-thr"><div class="vp-thr-v">${thr.drowsyCrit?.toFixed(3)}</div><div class="vp-thr-l">DROWSY CRIT</div></div>
+      </div>`:''}
+      <div class="vpc-actions">
+        ${!isActive?`<button class="vpc-act activate" onclick="activateProfile('${p.id}')">ACTIVATE</button>`:'<button class="vpc-act" disabled style="opacity:.4">ACTIVE</button>'}
+        <button class="vpc-act cal-act" onclick="recalProfile('${p.id}')">RECAL</button>
+        <button class="vpc-act danger" onclick="deleteProfile('${p.id}')">DELETE</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function activateProfile(id){
+  setActiveProfileId(id);applyProfileThresholds();updVPHudBadge();renderProfileList();
+}
+function deleteProfile(id){
+  if(!confirm('Delete this profile?'))return;
+  let profiles=getProfiles().filter(p=>p.id!==id);saveProfiles(profiles);
+  if(getActiveProfileId()===id){setActiveProfileId(null);updVPHudBadge();}
+  renderProfileList();
+}
+function recalProfile(id){
+  // Open form pre-loaded for recalibration of existing profile
+  const profiles=getProfiles();const p=profiles.find(x=>x.id===id);if(!p)return;
+  showVPForm();
+  document.getElementById('vp-name-inp').value=p.name;
+  document.getElementById('vp-form-view')._recalId=id;
+  // Indicate existing cal state
+  if(p.staticCal){
+    document.getElementById('vp-cal-status').textContent=`Last static cal: ${new Date(p.staticCal.capturedAt).toLocaleDateString()} — Noise floor: ${p.staticCal.noiseFloor?.toFixed(4)}g`;
+    document.getElementById('vp-cal-status').style.color='var(--safe)';
+  }
+}
+function saveNewProfile(){
+  const name=document.getElementById('vp-name-inp').value.trim();
+  const err=document.getElementById('vp-save-err');
+  if(!name){err.textContent='Enter a profile name.';return;}
+  const recalId=document.getElementById('vp-form-view')._recalId;
+  const profiles=getProfiles();
+  if(recalId){
+    // Update existing
+    const idx=profiles.findIndex(p=>p.id===recalId);
+    if(idx>=0){
+      profiles[idx].name=name;
+      profiles[idx].mountType=document.getElementById('vp-mount').value;
+      if(CAL.pendingResult)profiles[idx].staticCal=CAL.pendingResult;
+      if(profiles[idx].staticCal||profiles[idx].driveCal)
+        profiles[idx].derivedThresholds=deriveThresholds(profiles[idx].driveCal,profiles[idx].staticCal);
+    }
+  }else{
+    const driveCal=document.getElementById('vp-form-view')._driveCal||null;
+    const newProfile={
+      id:'vp_'+Date.now(),
+      name,
+      vehicle:[ST.veh.year,ST.veh.make,ST.veh.model].filter(Boolean).join(' ')||'Unknown',
+      mountType:document.getElementById('vp-mount').value,
+      createdAt:new Date().toISOString(),
+      lastUsed:null,
+      staticCal:CAL.pendingResult||null,
+      driveCal:driveCal||null,
+      derivedThresholds:(CAL.pendingResult||driveCal)?deriveThresholds(driveCal,CAL.pendingResult):null
+    };
+    profiles.unshift(newProfile);
+    setActiveProfileId(newProfile.id);
+  }
+  saveProfiles(profiles);
+  CAL.pendingResult=null;
+  document.getElementById('vp-form-view')._recalId=null;
+  document.getElementById('vp-form-view')._driveCal=null;
+  applyProfileThresholds();updVPHudBadge();showVPList();
+}
+function calibrateFromLastTrip(){
+  const trips=getTripSummaries();if(!trips.length)return;
+  const s=trips[0].session||{};
+  const gfSamples=s.gForceSamples||[];
+  if(!gfSamples.length){
+    document.getElementById('vp-trip-status').textContent='No G-force data in last trip. Drive with motion sensors active.';
+    document.getElementById('vp-trip-status').style.color='var(--warn)';
+    return;
+  }
+  // percentile helper
+  const pct=(arr,p)=>{const s=[...arr].sort((a,b)=>a-b);return s[Math.floor(s.length*(p/100))]||0;};
+  const driveCal={
+    normalTurnG:parseFloat(pct(gfSamples,85).toFixed(4)),
+    normalJitter:parseFloat((DS.jitterScore||0.04).toFixed(4)),
+    normalBrakeG:parseFloat(pct(gfSamples,80).toFixed(4)),
+    sampleCount:gfSamples.length,
+    capturedAt:new Date().toISOString(),
+    tripTs:trips[0].ts
+  };
+  // Store on the pending new profile form
+  const profiles=getProfiles();
+  const recalId=document.getElementById('vp-form-view')._recalId;
+  const staticCal=CAL.pendingResult||(recalId?profiles.find(p=>p.id===recalId)?.staticCal:null);
+  const derived=deriveThresholds(driveCal,staticCal);
+  document.getElementById('vp-trip-status').innerHTML=
+    `<strong style="color:var(--safe)">✓ Drive baseline captured</strong><br>Turn G: ${driveCal.normalTurnG}g · Jitter: ${driveCal.normalJitter} · Derived G-alert: ${derived.gforceAlert.toFixed(2)}g`;
+  document.getElementById('vp-trip-status').style.color='var(--safe)';
+  document.getElementById('vp-trip-btn').textContent='✓ BASELINE SET';
+  // Temporarily store on form for saveNewProfile to pick up
+  document.getElementById('vp-form-view')._driveCal=driveCal;
+}
+
+// ─── Static Calibration ───────────────────────────────────
+function startStaticCal(){
+  if(CAL.running)return;
+  if(!_motionHandlerAttached){
+    document.getElementById('vp-cal-err').textContent='Motion sensors not active. Grant permission first (TUNE → Sensor Permissions).';
+    return;
+  }
+  document.getElementById('vp-cal-err').textContent='';
+  document.getElementById('vp-cal-btn').disabled=true;
+  document.getElementById('vp-cal-btn').textContent='Calibrating…';
+  document.getElementById('vp-cal-prog').style.display='block';
+  document.getElementById('vp-cal-results').style.display='none';
+  // Switch to running view
+  document.querySelectorAll('.vp-view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('vp-cal-view').classList.add('active');
+  CAL.running=true;
+  CAL.samples.lat=[];CAL.samples.vert=[];
+  CAL.startTime=Date.now();
+  CAL.interval=setInterval(()=>{
+    // Push current sensor readings each tick (~10Hz via motionHandler, but we sample at interval pace)
+    CAL.samples.lat.push(ST.gLat);
+    CAL.samples.vert.push(ST.gVert);
+    const elapsed=Date.now()-CAL.startTime;
+    const pct=Math.min(elapsed/CAL.duration*100,100);
+    const remaining=Math.max(0,Math.ceil((CAL.duration-elapsed)/1000));
+    // Update UI
+    const bar=document.getElementById('cal-main-bar');if(bar)bar.style.width=pct+'%';
+    const cd=document.getElementById('cal-countdown');if(cd)cd.textContent=remaining;
+    const ll=document.getElementById('cal-live-lat');if(ll)ll.textContent=ST.gLat.toFixed(3);
+    const lv=document.getElementById('cal-live-vert');if(lv)lv.textContent=ST.gVert.toFixed(3);
+    const ln=document.getElementById('cal-live-n');if(ln)ln.textContent=CAL.samples.lat.length;
+    if(elapsed>=CAL.duration)finishStaticCal();
+  },200);
+}
+function finishStaticCal(){
+  clearInterval(CAL.interval);CAL.running=false;
+  const lat=CAL.samples.lat,vert=CAL.samples.vert;
+  const mean=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
+  const stddev=arr=>{const m=mean(arr);return Math.sqrt(arr.reduce((s,v)=>s+(v-m)**2,0)/Math.max(arr.length,1));};
+  const result={
+    noiseFloor:parseFloat(stddev(lat).toFixed(5)),
+    mountOffsetLat:parseFloat(mean(lat).toFixed(5)),
+    mountOffsetVert:parseFloat(mean(vert).toFixed(5)),
+    sampleCount:lat.length,
+    capturedAt:new Date().toISOString()
+  };
+  CAL.pendingResult=result;
+  // Return to form view
+  document.querySelectorAll('.vp-view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('vp-form-view').classList.add('active');
+  // Update form UI
+  document.getElementById('vp-cal-status').innerHTML=`<strong style="color:var(--safe)">✓ Calibration complete</strong> — ${lat.length} samples`;
+  document.getElementById('vp-cal-status').style.color='var(--safe)';
+  document.getElementById('vp-cal-results').style.display='grid';
+  document.getElementById('vc-noise').textContent=result.noiseFloor.toFixed(4)+'g';
+  document.getElementById('vc-lat').textContent=result.mountOffsetLat.toFixed(4)+'g';
+  document.getElementById('vc-vert').textContent=result.mountOffsetVert.toFixed(4)+'g';
+  document.getElementById('vp-cal-btn').textContent='✓ CALIBRATED — RE-RUN?';
+  document.getElementById('vp-cal-btn').disabled=false;
+}
+
+// ─── Post-trip calibration offer ─────────────────────────
+function showTripCalOffer(){
+  const p=getActiveProfile();
+  if(!p)return;
+  const trips=getTripSummaries();if(!trips.length)return;
+  const s=trips[0].session||{};
+  const el=document.getElementById('ocal-body');
+  if(el)el.textContent=`Active profile "${p.name}" — use this ${s.durationMinutes||0}-min trip (avg risk ${s.avgRiskScore||0}) as your drive baseline? Thresholds will adapt to this vehicle's real sensor data.`;
+  document.getElementById('ocal').classList.add('active');
+}
+function acceptTripCal(){
+  document.getElementById('ocal').classList.remove('active');
+  const p=getActiveProfile();if(!p)return;
+  const trips=getTripSummaries();if(!trips.length)return;
+  const s=trips[0].session||{};
+  const gfSamples=s.gForceSamples||TRIP.gForceSamples||[];
+  if(!gfSamples.length)return;
+  const pct=(arr,pc)=>{const so=[...arr].sort((a,b)=>a-b);return so[Math.floor(so.length*(pc/100))]||0;};
+  const driveCal={
+    normalTurnG:parseFloat(pct(gfSamples,85).toFixed(4)),
+    normalJitter:parseFloat((DS.jitterScore||0.04).toFixed(4)),
+    normalBrakeG:parseFloat(pct(gfSamples,80).toFixed(4)),
+    sampleCount:gfSamples.length,
+    capturedAt:new Date().toISOString()
+  };
+  const profiles=getProfiles();
+  const idx=profiles.findIndex(x=>x.id===p.id);
+  if(idx>=0){
+    profiles[idx].driveCal=driveCal;
+    profiles[idx].lastUsed=new Date().toISOString();
+    profiles[idx].derivedThresholds=deriveThresholds(driveCal,profiles[idx].staticCal);
+    saveProfiles(profiles);
+    applyProfileThresholds();updVPHudBadge();
+    speak('Profile calibrated. Thresholds updated.','summary');
+  }
+}
+function declineTripCal(){document.getElementById('ocal').classList.remove('active');}
+
 
 function getDrivingContext(){
   const v=ST.veh;const s=ST.scores;
@@ -1732,7 +2227,8 @@ async function endTrip(){
     speedLimitViolations:SL.alertLevel?1:0,
     vehicleName:[ST.veh.year,ST.veh.make,ST.veh.model].filter(Boolean).join(' ')||'Unknown',
     passengerCount:ST.cfg.passengers,
-    riskMultiplierApplied:passengerMultiplier()
+    riskMultiplierApplied:passengerMultiplier(),
+    gForceSamples:TRIP.gForceSamples.slice()  // preserved for post-trip drive cal
   };
   // Generate summary via Claude
   let summary=null;
@@ -1774,6 +2270,9 @@ async function endTrip(){
   // Auto-show summaries view
   _logView='summaries';
   if(document.getElementById('oi').classList.contains('active'))renderIncidentLog();
+  // Offer trip calibration if active profile exists and has no drive baseline
+  const ap=getActiveProfile();
+  if(ap&&!ap.driveCal)setTimeout(showTripCalOffer,1500);
 }
 async function generateTripSummary(session){
   const prompt=`Analyze this driving trip and respond ONLY with a valid JSON object — no markdown, no explanation, no trailing text.
@@ -2119,6 +2618,8 @@ function init(){
   initGauge();initChart();setInterval(updUI,500);
   initVoice();
   setPassengers(ST.cfg.passengers||0);
+  applyProfileThresholds();
+  updVPHudBadge();
   // Initial AI greeting after 2s
   setTimeout(()=>{
     if(ST.cfg.apiKey&&document.getElementById('sm').classList.contains('active')){
